@@ -7,7 +7,7 @@
 
 ---
 # 示範影片
-讓我們先看看這插件的效果 (點擊開啟影片)
+讓我們先看看這插件的效果 (點擊開啟影片)  
 [![示範影片](https://img.youtube.com/vi/A5wXk5k4WVk/0.jpg)](https://www.youtube.com/watch?v=A5wXk5k4WVk "")
 
 # 功能
