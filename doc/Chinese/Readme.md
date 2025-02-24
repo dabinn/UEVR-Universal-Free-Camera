@@ -46,13 +46,14 @@
 (目前1.0版尚未支援)
 
 ## 環繞攝影機操作
-環繞攝影機(又稱為關卡攝影機)是一種在遊戲進行中可同時操作的攝影機模式。
-他使用到的按鈕數較少，操作也較簡單，所以當遊戲未使用右搖桿時，就有機會和遊戲同時操作。但因為他必需額外指定環繞的中心點，只能在特製遊戲才能夠打開這功能。
-例如在R-Type Final 2中，環繞攝影機的預設操作是像這樣：
+環繞攝影機(又稱為關卡攝影機)是一種在遊戲進行中可同時操作的攝影機模式。  
+他使用到的按鈕數較少，操作也較簡單，所以當遊戲未使用右搖桿時，就有機會和遊戲同時操作。
+但因為他必需額外指定環繞的中心點，只能在特製遊戲才能夠打開這功能。  
+例如在R-Type Final 2中，環繞攝影機的預設操作是像這樣：  
 ![](img/controller_stagecam.svg)
 
 # 自定義按鍵
-用文字編輯器打開插件主程式，比如通用版插件的檔名會是ds-uevr-universal-freecam.lua。
+用文字編輯器打開插件主程式，比如通用版插件的檔名會是ds-uevr-universal-freecam.lua。  
 會看到類似這樣的設定, 裏面有各項功能名稱：
 ```lua
 cfg.buttons = {
@@ -71,19 +72,19 @@ DPadUp, DPadDown, DPadLeft, DPadRight
 Back, Start
 ```
 - 若要指定按鈕組合，請使用 `+` 符號。例如：`Select+Y`
-- 若要另行指定按鈕`按下、按住、放開、雙擊`等事件，請使用`pressed, held, released, doubleclick`這幾個字，並以 `_` 符號和按鈕名稱分隔。例如：`L3_held`, `Select_pressed`
+- 若要另行指定按鈕`按下、按住、放開、雙擊`等事件，請使用`pressed, held, released, doubleclick`這幾個字，並以 `_` 符號和按鈕名稱分隔。例如：`L3_held`, `Select_pressed`  
 若未特別指定事件，單鍵的預設事件為 "released"，可符合大部份需求。而按鈕組合不需要幫他指定事件。
 
 
 # 安裝
-1. [下載插件] (url)，並解壓縮
-1. 打開UEVR介面，按下Open Golbal Dir
+1. [下載插件] (url)，並解壓縮  
+1. 打開UEVR介面，按下Open Golbal Dir  
 ![](img/uevr-global-dir.png)    
-1.找到自己的遊戲名稱，裏面有個scripts目錄
+1.找到自己的遊戲名稱，裏面有個scripts目錄  
 ![](img/uevr-script-dir1.png)
-1. 把解壓縮後的檔案複製到scripts目錄
+1. 把解壓縮後的檔案複製到scripts目錄  
 ![](img/uevr-script-dir2.png)
-1. 這樣就好啦
+1. 這樣就好啦  
 
 
 # 已知問題/注意事項
@@ -95,8 +96,8 @@ Back, Start
 * 增加更多的自定義設定
 
 # 特別感謝
-[praydog](https://github.com/praydog)
-UEVR除了本身強大的功能外，還有提供了插件的支援，才有可能做出各遊戲通用的自由攝影機插件。
+[praydog](https://github.com/praydog)  
+UEVR除了本身強大的功能外，還有提供了插件的支援，才有可能做出各遊戲通用的自由攝影機插件。  
 
-[mark-mon](https://github.com/mark-mon)
-公開的UEVR插件原始碼很有參考價值，並且非常熱心，在UEVR的DC提供了許多有用的資訊。
+[mark-mon](https://github.com/mark-mon)  
+公開的UEVR插件原始碼很有參考價值，並且非常熱心，在UEVR的DC提供了許多有用的資訊。  
