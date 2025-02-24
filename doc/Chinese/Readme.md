@@ -10,7 +10,7 @@
 讓我們先看看這插件的效果 (點擊開啟影片)  
 <a href="https://www.youtube.com/watch?v=A5wXk5k4WVk" target="_blank">
     <img src="https://img.youtube.com/vi/A5wXk5k4WVk/0.jpg" alt="示範影片">
-</a
+</a>
 
 # 功能
 * **自由攝影機**：前後左右上下移動，2軸旋轉。 (控制器熱鍵切換)
