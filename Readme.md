@@ -23,7 +23,7 @@ Let’s take a look at the plugin’s effect first (click to watch the video)
 # Custom Features
 In addition to general functionality, this plugin can also be integrated into other plugins for custom features, enabling additional functionality for specific games.
 * **Orbit Camera**: Operate simultaneously during gameplay to orbit a target object, with real-time distance adjustment (dolly).
-* **Scene Camera**: Customize camera parameters or control methods based on different scenes in the game, such as changing the camera's dolly.  
+* **Scene Camera**: Customize camera parameters or control methods based on different scenes in the game, such as changing the camera's position.  
 * **Speed Setting**: Set a speed range more suitable for the game scene scale.
 * **Event System**: Provides events like level switching, character switching, etc.
 * **Controller Status**: Offers easier controller status detection.
