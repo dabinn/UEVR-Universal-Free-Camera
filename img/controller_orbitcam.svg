@@ -9,7 +9,7 @@
    id="svg2"
    xml:space="preserve"
    style="overflow:visible"
-   sodipodi:docname="controller_stagecam.svg"
+   sodipodi:docname="controller_orbitcam.svg"
    inkscape:version="1.1 (c68e22c387, 2021-05-23)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -28,7 +28,7 @@
    inkscape:deskcolor="#d1d1d1"
    showguides="true"
    inkscape:zoom="0.53440567"
-   inkscape:cx="568.85624"
+   inkscape:cx="971.17233"
    inkscape:cy="393.89552"
    inkscape:window-width="1920"
    inkscape:window-height="1137"
@@ -1188,11 +1188,11 @@
          x="938.43433"
          y="856.67969"
          id="tspan3488"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;text-anchor:start">RS:Camera Orbit/Dolly</tspan></tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;text-anchor:start">RS: Camera orbit</tspan></tspan><tspan
        sodipodi:role="line"
        x="938.43433"
        y="906.67969"
-       id="tspan2312">R3:(Click) Orbit/Dolly toggle</tspan><tspan
+       id="tspan2312">R3: (Click) Reset camera</tspan><tspan
        sodipodi:role="line"
        x="938.43433"
        y="956.67969"
@@ -1246,5 +1246,32 @@
        x="796.07422"
        y="429.43359"
        id="tspan3534"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">Reset Camera</tspan></text></switch>
-</svg>
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">3-step distance toggle</tspan></text></switch>
+<g
+   id="Shape_19_1_"
+   style="overflow:visible"
+   transform="translate(-4.140625e-5)"><g
+     id="Shape_19"><g
+       id="g504"><rect
+         width="176.87"
+         height="3.4000001"
+         x="1371.3149"
+         y="257.32199"
+         id="rect506" /></g></g></g><text
+   x="1561.0742"
+   y="271.67969"
+   id="text3500"
+   xml:space="preserve"
+   style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Arial;letter-spacing:0px;word-spacing:0px;overflow:visible;fill:#000000;fill-opacity:1;stroke:none;-inkscape-font-specification:'Arial, Normal';font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"><tspan
+     sodipodi:role="line"
+     id="tspan1189"
+     x="1561.0742"
+     y="271.67969"><tspan
+       x="1561.0742"
+       y="271.67969"
+       id="tspan3502"
+       style="-inkscape-font-specification:'Arial, Normal';font-family:Arial;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:40px;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">(Hold+RS)</tspan></tspan><tspan
+     sodipodi:role="line"
+     id="tspan1191"
+     x="1561.0742"
+     y="321.67969">Adjust distance</tspan></text></svg>

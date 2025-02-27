@@ -23,8 +23,8 @@ Let’s take a look at the plugin’s effect first (click to watch the video)
 # Custom Features
 In addition to general functionality, this plugin can also be integrated into other plugins for custom features, enabling additional functionality for specific games.
 * **Orbit Camera**: Operate simultaneously during gameplay to orbit a target object, with real-time distance adjustment (dolly).
+* **Scene Camera**: Customize camera parameters or control methods based on different scenes in the game, such as changing the camera's dolly.  
 * **Speed Setting**: Set a speed range more suitable for the game scene scale.
-* **Scene Dolly**: Adjust the most suitable camera distance based on different game scenes.
 * **Event System**: Provides events like level switching, character switching, etc.
 * **Controller Status**: Offers easier controller status detection.
 
@@ -54,7 +54,7 @@ The Orbit Camera (also known as the Stage Camera) is a camera mode that can be o
 It uses fewer buttons and is simpler to operate, so when the game doesn’t use the right stick, it has a chance to operate simultaneously with the game.  
 However, it requires a designated center point to orbit and can only be activated in games with custom plugins.  
 For example, in R-Type Final 2, the default operation for the Orbit Camera is as follows:  
-![](img/controller_stagecam.svg)
+![](img/controller_orbitcam.svg)
 
 # Custom Key Mapping
 Open the plugin’s main script with a text editor, such as `ds-uevr-universal-freecam.lua` for the universal version of the plugin.  
@@ -92,6 +92,7 @@ If no event is specified, the default event for a single button is "released", w
 
 # Known Issues / Notes
 * I haven’t tested UE5 games, so I’m not sure if they work properly.
+* When using UEVR's UObjectHook simultaneously to attach the camera, it may cause unexpected behavior in the Free Camera.
 
 # To-Do
 * Test compatibility with more games
