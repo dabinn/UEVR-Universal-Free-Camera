@@ -63,7 +63,7 @@ You’ll see settings like this, which contain various function names:
 cfg.buttons = {
     active = "L3_held",   -- Activate free camera mode
     deactive = "L3",      -- Deactivate free camera mode
-    resetCam = "Back",    -- Reset camera
+    resetCam = "R3",    -- Reset camera
     speedIncrease = "RB", -- Speed up
     speedDecrease = "LB", -- Slow down
 }
