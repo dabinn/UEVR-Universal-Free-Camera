@@ -62,7 +62,7 @@
 cfg.buttons = {
     active = "L3_held",   -- 啟動自由攝影機模式
     deactive = "L3",      -- 離開自由攝影機模式
-    resetCam = "Back",    -- 重置攝影機
+    resetCam = "R3",    -- 重置攝影機
     speedIncrease = "RB", -- 加速
     speedDecrease = "LB", -- 減速
 }
