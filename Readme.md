@@ -58,7 +58,7 @@ For example, in R-Type Final 2, the default operation for the Orbit Camera is as
 
 # Custom Key Mapping
 Open the plugin’s main script with a text editor, such as `ds-uevr-universal-freecam.lua` for the universal version of the plugin.  
-You’ll see settings like this, which contain various function names:  
+You’ll see settings like this, which contain various button action names :  
 ```lua
 cfg.buttons = {
     active = "L3_held",   -- Activate free camera mode
