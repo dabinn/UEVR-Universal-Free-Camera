@@ -80,7 +80,7 @@ Back, Start
 
 
 # 安裝
-1. [下載插件] (url)，並解壓縮  
+1. [下載插件](https://github.com/dabinn/UEVR-Universal-Free-Camera/releases/)，並解壓縮  
 1. 打開UEVR介面，按下`Open Golbal Dir`  
 ![](img/uevr-global-dir.png)    
 1.找到自己的遊戲名稱，裏面有個`scripts`目錄  
