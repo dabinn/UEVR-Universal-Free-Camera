@@ -81,7 +81,7 @@ If no event is specified, the default event for a single button is "released", w
 
 
 # Installation
-1. [Download the plugin] (url) and unzip it  
+1. [Download the plugin](https://github.com/dabinn/UEVR-Universal-Free-Camera/releases/) and extract it  
 1. Open the UEVR interface and click `Open Global Dir`  
 ![](img/uevr-global-dir.png)    
 1. Find your game name and locate the `scripts` directory  
