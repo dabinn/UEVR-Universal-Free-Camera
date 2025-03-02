@@ -5,7 +5,7 @@
 --          be used as a standalone universal plugin or customized with specific 
 --          parameters for other game plugins.
 -- License: MIT
--- Version: 1.0.0
+-- Version: 1.0.1
 -- Date:    2025/02/09
 -- Author:  Dabinn Huang @DSlabs
 -- Powered by TofuExpress --
@@ -207,7 +207,6 @@ local function calcRotSpeed(step)
         return spd.rotate_speed_max
     end
     local speed = calcSpeedLimiter(spd.rotate_speed_min, spd.rotate_speed_max, step)
-    uprint("rot speed: " .. speed)
     return speed
 end
 
@@ -216,7 +215,6 @@ local function calcMoveSpeed(step)
         return spd.move_speed_max
     end
     local speed = calcSpeedLimiter(spd.move_speed_min, spd.move_speed_max, step)
-    uprint("move speed: " .. speed)
     return speed
 end
 
@@ -240,6 +238,7 @@ end
 local function adjustCamSpeed(stepDir)
     moveSpeed = adjustMoveSpeed(stepDir)
     rotSpeed = adjustRotSpeed(stepDir)
+    uprint("Move/Rot Speed: ["..spd.currMoveStep.."/"..spd.currRotStep.."] " .. moveSpeed .. " / "..rotSpeed)
 end
 
 local function moveCam(pctX, pctY, pctZ, deltaTime) -- send delta distance
@@ -431,7 +430,8 @@ local function onEarlyCalculateStereoViewOffset(device, view_index, world_to_met
     end
 
     -- view_index
-    -- 0: never execute, 1: left eye, 2: right eye/screen
+    -- (UE4) 0: never execute, 1: left eye, 2: right eye/screen
+    -- (UE5) 0: left eye, 1: right eye/screen
     -- Each eye will be triggered separately.
     -- Only processing one eye may result in only one eye moving in VR
     -- L/R values may not be the same while moving (eye2=eye1 but eye1 ~= next eye2)
@@ -489,9 +489,6 @@ local function onEarlyCalculateStereoViewOffset(device, view_index, world_to_met
         orbitCamOffsetRot = orbitCamOffsetRot + inputRot
 
         local targetPos = Vector3f.new(0,0,0)
-        if view_index == 1 then
-            events:emit('freecam_update_target_position')
-        end
         if viewTargetPos then
             targetPos = viewTargetPos
             -- uprint("targetPos: " .. targetPos.x .. ", " .. targetPos.y .. ", " .. targetPos.z)
@@ -545,22 +542,19 @@ local function onEarlyCalculateStereoViewOffset(device, view_index, world_to_met
             )
         end
 
-        -- The camoffset here only for Scene Camera mode
-        -- 1. orbitcam mode: the offset is calulated by orbitAroundTarget(), which is already applied.
-        -- 2. freecam mode: camPos is the freecam starting position, which should already be offseted by other camera modes.
-        if freeCamMode == camType.scene then
-            -- Considering our camera's rotation keep changing, we need to recalculate the offset every time, even if the camOffset does not change.
-            local camOffsetTransformed = camOffsetTransformedLR[view_index]
-            -- remove the applied offset first
-            lib.xyzSubInPlace(newPos, camOffsetTransformed)
-            -- calculcate new transformed camOffset
-            camOffsetTransformed = lib.kismet_math:GreaterGreater_VectorRotator(camOffset, rotation)
-            -- Add the offset to newPos for freeCam to follow its position
-            lib.xyzAddInPlace(newPos, camOffsetTransformed)
+        -- The camoffset here only for Free/Scene Camera mode
+        -- In orbitcam mode, the offset is calulated by orbitAroundTarget(), which is already applied.
+        -- Considering our camera's rotation keep changing, we need to recalculate the offset every time, even if the camOffset does not change.
+        local camOffsetTransformed = camOffsetTransformedLR[view_index]
+        -- remove the applied offset first
+        lib.xyzSubInPlace(newPos, camOffsetTransformed)
+        -- calculcate new transformed camOffset
+        camOffsetTransformed = lib.kismet_math:GreaterGreater_VectorRotator(camOffset, rotation)
+        -- Add the offset to newPos for freeCam to follow its position
+        lib.xyzAddInPlace(newPos, camOffsetTransformed)
 
-            --record the offseted we applied
-            camOffsetTransformedLR[view_index] = camOffsetTransformed
-        end
+        --record the offseted we applied
+        camOffsetTransformedLR[view_index] = camOffsetTransformed
 
         
         -- Overwrite offsetPos/offsetRot to synchronize the Orbit camera position
@@ -597,13 +591,19 @@ local function onEarlyCalculateStereoViewOffset(device, view_index, world_to_met
     lib.xyzSetInPlace(rotation, newRot)
 
 
-    -- clear the inputPos/offset to prevent it from being added again
-    -- Note: If input is increased between the handling of view_index 1 and 2, it may cause inconsistent movement amounts for the left and right eyes.
-    if  view_index == 2 then
-        lib.xyzClearInPlace(inputPos)
-        lib.xyzClearInPlace(inputRot)
+end
+local function onPostCalculateStereoViewOffset(device, view_index, world_to_meters, position, rotation, is_double)
+end
+local function onPreEngineTick(engine, delta_time)
+    -- Reuest the targetPos before the pre_calc_stereo callback
+    if freeCamMode == camType.orbit then
+            events:emit('freecam_update_target_position')
     end
-
+end
+local function onPostEngineTick(engine, delta_time)
+    -- clear the inputPos/offset after post_calc_sterio
+    lib.xyzClearInPlace(inputPos)
+    lib.xyzClearInPlace(inputRot)
 end
 
 local function checkCommonActions(buttonState, buttonActions)
@@ -733,7 +733,7 @@ local function updateConfig(config, extConfig)
             -- Update nested table
             updateConfig(config[k], v)
         else
-            uprint("Updating config: " .. tostring(k) .. " = " .. tostring(v))
+            -- uprint("Updating config: " .. tostring(k) .. " = " .. tostring(v))
             config[k] = v
         end
     end
@@ -748,6 +748,9 @@ local function initExtConfig()
     end
     if extCfg.opt then
         updateConfig(opt, extCfg.opt)
+    end
+    if extCfg.spd then
+        updateConfig(cfg.spd, extCfg.spd)
     end
     if extCfg.buttons then
         updateConfig(controls[camType.free].buttons, extCfg.buttons)
@@ -773,14 +776,15 @@ function freecam.init()
     -- Initialize
     initExtConfig()
     -- buttonActions for each camera mode will be updated when the mode is toggled, but we need to get the config of the freecam's activation button first.  
-    updateButtonActions(camType.default, {})   -- For the default cam, set an empty table to prevent errors
+    updateButtonActions(camType.default, controls[camType.default].buttons)   -- For the default cam, set an empty table to prevent errors
     updateButtonActions(camType.free, controls[camType.free].buttons) 
     -- updateButtonActionsAll()
 
     -- Register event callbacks
+    uevr.sdk.callbacks.on_pre_engine_tick(onPreEngineTick)
+    uevr.sdk.callbacks.on_post_engine_tick(onPostEngineTick)
     uevr.sdk.callbacks.on_early_calculate_stereo_view_offset(onEarlyCalculateStereoViewOffset)
-    -- uevr.sdk.callbacks.on_post_calculate_stereo_view_offset(function(device, view_index, world_to_meters, position, rotation, is_double)
-    -- end)
+    -- uevr.sdk.callbacks.on_post_calculate_stereo_view_offset(onPostCalculateStereoViewOffset)
     events:on('xinput_button_changed', onXinputButtonChanged)
     events:on('xinput_state_changed', onXinputStateChanged)
 end

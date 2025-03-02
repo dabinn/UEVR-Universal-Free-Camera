@@ -5,7 +5,7 @@
 --          be used as a standalone universal plugin or customized with specific 
 --          parameters for other game plugins.
 -- License: MIT
--- Version: 1.0.0
+-- Version: 1.0.1
 -- Date:    2025/02/15
 -- Author:  Dabinn Huang @DSlabs
 -- Powered by TofuExpress --
