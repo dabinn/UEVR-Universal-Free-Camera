@@ -2,8 +2,8 @@
 -- Brief:   DS UEVR plugin common functions
 -- Details: Common functions for DS UEVR plugin
 -- License: MIT
--- Version: 1.0.0
--- Date:    2025/02/13
+-- Version: 1.2.0
+-- Date:    2025/03/16
 -- Author:  Dabinn Huang @DSlabs
 -- Powered by TofuExpress --
 
@@ -91,7 +91,7 @@ end
 
 lib.game_engine_class = api:find_uobject("Class /Script/Engine.GameEngine")
 -- lib.kismet_string = lib.find_static_class("Class /Script/Engine.KismetStringLibrary")
-lib.kismet_math = lib.find_static_class("Class /Script/Engine.KismetMathLibrary")
+local kismet_math = lib.find_static_class("Class /Script/Engine.KismetMathLibrary")
 -- lib.kismet_system = lib.find_static_class("Class /Script/Engine.KismetSystemLibrary")
 lib.Statics = lib.find_static_class("Class /Script/Engine.GameplayStatics")
 lib.hitresult_c = api:find_uobject("ScriptStruct /Script/Engine.HitResult")
@@ -113,7 +113,68 @@ local hmd_actor = nil -- The purpose of the HMD actor is to accurately track the
 local hmd_component = nil
 
 
+-- Kismet Math Library wrappers (For compatibility with UEVR stable version)
+lib.kismet_math = {}
+function lib.kismet_math:GreaterGreater_VectorRotator(Vector, Rotator)
+    return kismet_math:call("GreaterGreater_VectorRotator",Vector, Rotator)
+end
+function lib.kismet_math:LessLess_VectorRotator(Vector, Rotator)
+    return kismet_math:call("LessLess_VectorRotator",Vector, Rotator)
+end
+function lib.kismet_math:Conv_VectorToRotator(Vector)
+    return kismet_math:call("Conv_VectorToRotator",Vector)
+end
+function lib.kismet_math:Conv_RotatorToVector(Rotator)
+    return kismet_math:call("Conv_RotatorToVector",Rotator)
+end
+function lib.kismet_math:FindLookAtRotation(Vector, Vector2)
+    return kismet_math:call("FindLookAtRotation",Vector, Vector2)
+end
 
+-- Split function for strings
+function string:split(sep)
+    local fields = {}
+    local pattern = string.format("([^%s]+)", sep)
+    self:gsub(pattern, function(c) fields[#fields + 1] = c end)
+    if #fields == 0 then
+        fields[1] = self
+    end
+    return fields
+end
+
+function lib.trim(s)
+    -- remove leading and trailing whitespace(%s) and null characters(%z)
+    return s:gsub("^[%s%z]+", ""):gsub("[%s%z]+$", "")
+end
+
+function lib.sign(x)
+    return (x > 0 and 1) or (x < 0 and -1) or 0
+end
+
+function lib.atan2(y, x)
+    if x > 0 then
+        return math.atan(y / x)
+    elseif x < 0 and y >= 0 then
+        return math.atan(y / x) + math.pi
+    elseif x < 0 and y < 0 then
+        return math.atan(y / x) - math.pi
+    elseif x == 0 and y > 0 then
+        return math.pi / 2
+    elseif x == 0 and y < 0 then
+        return -math.pi / 2
+    else
+        return 0 -- x = 0, y = 0，默认返回 0
+    end
+end
+
+
+
+function lib.getModValue(key)
+    return lib.trim(vr:get_mod_value(key))
+end
+function lib.getModValueB(key)
+    return lib.getModValue(key) == "true"
+end
 function lib.setModValueB(key, bool)
     if bool then
         vr.set_mod_value(key, "true")
@@ -124,7 +185,31 @@ end
 function lib.setModValue(key, value)
     vr.set_mod_value(key, tostring(value))
 end
+function lib.setModValueCamOffset(camOffset)
+    vr.set_mod_value("VR_CameraForwardOffset", camOffset.x)
+    vr.set_mod_value("VR_CameraRightOffset", camOffset.y)
+    vr.set_mod_value("VR_CameraUpOffset", camOffset.z)
+end
+function lib.resetModValueCamOffset()
+    vr.set_mod_value("VR_CameraForwardOffset", 0)
+    vr.set_mod_value("VR_CameraRightOffset", 0)
+    vr.set_mod_value("VR_CameraUpOffset", 0)
+end
+
+function lib.recenterVR()
+        local hmd_pos=UEVR_Vector3f.new()
+        local hmd_rot=UEVR_Quaternionf.new()
+
+        vr.get_pose(vr.get_hmd_index(), hmd_pos, hmd_rot)
+        vr.set_standing_origin(hmd_pos)
+        vr.recenter_view()
+end
+
+
 function lib.enableGUI(bool)
+    if lib.getModValueB("VR_EnableGUI") == bool then
+        return
+    end
     lib.setModValueB("VR_EnableGUI", bool)
     -- Hide the GUI
     -- local gui = api:find_uobject("WidgetBlueuprint /Game/Blueuprints/WidgetBlueuprints/FreeCamWidget.FreeCamWidget")
@@ -311,7 +396,55 @@ function lib.getCameraComponent()
 end
 
 
-
+-- For vectors that need to set individual xyz values，e.g. position/rotation in UEVR stereo callbacks
+function lib.xyzSetInPlace(vec1, vec2)
+    vec1.x = vec2.x
+    vec1.y = vec2.y
+    vec1.z = vec2.z
+end
+function lib.xyzAddInPlace(vec1, vec2)
+    vec1.x = vec1.x + vec2.x
+    vec1.y = vec1.y + vec2.y
+    vec1.z = vec1.z + vec2.z
+end
+function lib.xyzSubInPlace(vec1, vec2)
+    vec1.x = vec1.x - vec2.x
+    vec1.y = vec1.y - vec2.y
+    vec1.z = vec1.z - vec2.z
+end
+function lib.xyzMulInPlace(vec1, scalar)
+    vec1.x = vec1.x * scalar
+    vec1.y = vec1.y * scalar
+    vec1.z = vec1.z * scalar
+end
+function lib.xyzDivInPlace(vec1, scalar)
+    vec1.x = vec1.x / scalar
+    vec1.y = vec1.y / scalar
+    vec1.z = vec1.z / scalar
+end
+function lib.xyzClearInPlace(vec)
+    vec.x = 0
+    vec.y = 0
+    vec.z = 0
+end
+function lib.xyzSet(vec1)
+    return Vector3f.new(vec1.x, vec1.y, vec1.z)
+end
+function lib.xyzSetZ(vec1, z)
+    return Vector3f.new(vec1.x, vec1.y, z)
+end
+function lib.xyzAdd(vec1, vec2)
+    return Vector3f.new(vec1.x + vec2.x, vec1.y + vec2.y, vec1.z + vec2.z)
+end
+function lib.xyzSub(vec1, vec2)
+    return Vector3f.new(vec1.x - vec2.x, vec1.y - vec2.y, vec1.z - vec2.z)
+end
+function lib.xyzMul(vec1, scalar)
+    return Vector3f.new(vec1.x * scalar, vec1.y * scalar, vec1.z * scalar)
+end
+function lib.xyzDiv(vec1, scalar)
+    return Vector3f.new(vec1.x / scalar, vec1.y / scalar, vec1.z / scalar)
+end
 
 
 function lib.matrixMultiply(a, b)
@@ -496,69 +629,44 @@ end
 function lib.lookAtRotator(camPos, targetPos)
     local direction = targetPos - camPos
     direction = lib.normalizeVector(direction)
-    return lib.kismet_math:Conv_VectorToRotator(direction)
+    return lib.kismet_math:call("Conv_VectorToRotator", direction)
 end
 
--- Split function for strings
-function string:split(sep)
-    local fields = {}
-    local pattern = string.format("([^%s]+)", sep)
-    self:gsub(pattern, function(c) fields[#fields + 1] = c end)
-    if #fields == 0 then
-        fields[1] = self
-    end
-    return fields
+-- Fix the issue where length() converts negative distances into positive.
+function lib.calcDirectionDistance(currPos, targetPos, rotator)
+    local directionVector = lib.kismet_math:Conv_RotatorToVector(rotator)
+    local offset = targetPos - currPos
+    local distance = offset:dot(directionVector:normalized())
+    return math.max(distance, 0)
+    -- if distance < 0 then
+    --     return 0
+    -- else
+    --     return offset:length() -- this should equal to distance when inputPos only changes it's .x value
+    -- end
 end
 
-function lib.sign(x)
-    return (x > 0 and 1) or (x < 0 and -1) or 0
+-- Applies proportional control to compute the view offset based on the distance 
+function lib.applyProportionalControl(posOffset, distanceWithoutOffset)
+    local distanceFactor = 2 -- Should be greater than 1
+    local scale = distanceWithoutOffset / (posOffset.x *distanceFactor)
+    uprint("scale: " .. scale)
+    scale = math.min(scale, 1)  -- Limit alpha to a maximum of 1.
+    local posOffsetOut = posOffset * scale
+    uprint("scale: " .. scale.." ,posOffsetOut: "..posOffsetOut.x..", "..posOffsetOut.y..", "..posOffsetOut.z)
+    return posOffsetOut
 end
 
-function lib.atan2(y, x)
-    if x > 0 then
-        return math.atan(y / x)
-    elseif x < 0 and y >= 0 then
-        return math.atan(y / x) + math.pi
-    elseif x < 0 and y < 0 then
-        return math.atan(y / x) - math.pi
-    elseif x == 0 and y > 0 then
-        return math.pi / 2
-    elseif x == 0 and y < 0 then
-        return -math.pi / 2
+-- Help to calculate the proportional viewPosOffset
+function lib.calcProportionalviewOffset(currPos, targetPos, lookAtRot, viewPosOffset)
+    local viewPosOffsetOut = Vector3f.new(0, 0, 0)
+    if viewPosOffset.x > 0 then -- prevent divide by zero
+        -- Proportional Control
+        local targetDistance = lib.calcDirectionDistance(currPos, targetPos, lookAtRot)
+        viewPosOffsetOut = lib.applyProportionalControl(viewPosOffset, targetDistance)
     else
-        return 0 -- x = 0, y = 0，默认返回 0
+        viewPosOffsetOut = viewPosOffset:clone()
     end
-end
-
--- For vectors that need to set individual xyz values，e.g. position/rotation in UEVR stereo callbacks
-function lib.xyzSetInPlace(vec1, vec2)
-    vec1.x = vec2.x
-    vec1.y = vec2.y
-    vec1.z = vec2.z
-end
-function lib.xyzAddInPlace(vec1, vec2)
-    vec1.x = vec1.x + vec2.x
-    vec1.y = vec1.y + vec2.y
-    vec1.z = vec1.z + vec2.z
-end
-function lib.xyzSubInPlace(vec1, vec2)
-    vec1.x = vec1.x - vec2.x
-    vec1.y = vec1.y - vec2.y
-    vec1.z = vec1.z - vec2.z
-end
-function lib.xyzClearInPlace(vec)
-    vec.x = 0
-    vec.y = 0
-    vec.z = 0
-end
-function lib.xyzSet(vec1)
-    return Vector3f.new(vec1.x, vec1.y, vec1.z)
-end
-function lib.xyzAdd(vec1, vec2)
-    return Vector3f.new(vec1.x + vec2.x, vec1.y + vec2.y, vec1.z + vec2.z)
-end
-function lib.xyzSub(vec1, vec2)
-    return Vector3f.new(vec1.x - vec2.x, vec1.y - vec2.y, vec1.z - vec2.z)
+    return viewPosOffsetOut
 end
 
 return lib

@@ -5,8 +5,8 @@
 --          be used as a standalone universal plugin or customized with specific 
 --          parameters for other game plugins.
 -- License: MIT
--- Version: 1.0.1
--- Date:    2025/02/15
+-- Version: 1.2.0
+-- Date:    2025/03/16
 -- Author:  Dabinn Huang @DSlabs
 -- Powered by TofuExpress --
 
@@ -41,11 +41,21 @@ local cfg=freecam.extCfg
 -- For example: `L3_held`, `Select_pressed` 
 -- Default event is "released" if not specified.
 cfg.buttons = {
-    active = "L3_held",
-    deactive = "L3",
-    resetCam = "R3",
-    speedIncrease = "RB",
-    speedDecrease = "LB",
+    active = "L3_held", -- Activate free camera
+    deactive = "L3", -- Deactivate free camera
+    resetCam = "R3", -- Reset the camera
+    resetAll = "R3_held", -- Reset both the camera and the custom view
+    speedIncrease = "RB", -- Increase movement speed
+    speedDecrease = "LB", -- Decrease movement speed
+    levelFlight = "X", -- Toggle level flight / omni-directional flight mode
+    omniFlightWithSpaceControl = "X_held", -- Enable omni-directional flight mode with space control scheme
+    followOn = "Y", -- Enable follow mode
+    followPositionOnly = "Y_doubleclick", -- Enable follow position only mode
+    followOff = "Y_held", -- Disable follow mode (Hold the camera)
+    viewCycle = "Back", -- Cycle through saved views
+    viewSave = "Back_held", -- Save the current view
+    autoGameMenuToggle = "Start", -- Hide the game menu automatically when free camera is enabled
+    -- disable = "B", -- for debug only
 }
 
 -- Speed Settings
@@ -54,20 +64,18 @@ cfg.spd[1] = {
     speedTotalStep = 10,
     move_speed_max = 50000, -- cm per second
     move_speed_min = 50,
-    rotate_speed_max = 180, -- degrees per second
-    rotate_speed_min = 90, -- degrees per second
-    currMoveStep = 5,
-    currRotStep = 5
+    rotate_speed_max = 270, -- degrees per second
+    rotate_speed_min = 150, -- degrees per second
+    currMoveStep = 4,
+    currRotStep = 4
 }
 
 -- Freecam Parameters
 cfg.opt={
-    enableGuiToggle = false, -- Disable game GUI when free camera is enabled
-    freecamFollowPosition = true, -- Follows game camera's position in free camera mode, or the object may run away from the camera.
-    freecamFollowRotation = false, -- It feels less `free` when following the rotation of the game camera.
-    freecamKeepPosition = false,  -- Don't reset the free camera's position while switching cameras.
+    uevrAttachCameraCompatible = false, -- Compatible with UEVR's attached camera feature, affecting the camera offset value in the UEVR interface.
+    autoGameMenuToggle = false, -- Disable game GUI when free camera is enabled
+    freecamInvertPitch = false, -- Invert the pitch of the free camera
     levelFlight = true, -- The vertical orientation of the camera does not affect the flight altitude.
-    cam_invert_pitch = false,
     recenterVROnCameraReset = true, -- Reset the camera and recenter VR at the same time
 }
 

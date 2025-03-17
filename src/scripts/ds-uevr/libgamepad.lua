@@ -2,8 +2,8 @@
 -- Brief:   DS UEVR gamepad library
 -- Details: Button configuration and XInput event handling
 -- License: MIT
--- Version: 1.0.0
--- Date:    2025/02/21
+-- Version: 1.2.0
+-- Date:    2025/03/16
 -- Author:  Dabinn Huang @DSlabs
 -- Powered by TofuExpress --
 
@@ -93,7 +93,7 @@ local function buttonDefToLower()
         buttonDefLower[key:lower()] = value
     end
 end
-buttonDefToLower() -- convert buttonDef for parseButtonAction()
+buttonDefToLower() -- convert buttonDef for parseButtonConfigs()
 
 
 local interceptAxesNames = {}
@@ -128,13 +128,21 @@ function gamepad.intercept(state)
     state.Gamepad.wButtons = state.Gamepad.wButtons & ~interceptButtonMask
 end
 
+gamepad.axisExpoFactor = 1/2 -- Exponent factor for the thumbstick input
+-- Function to calculate the percentage of a number raised to an exponent
+function gamepad.expoPercent(percentage, exp)
+    return percentage^(1/exp)
+end
+
 -- Calculate deadzone by percentages
 function gamepad.calcDeadzone(percent)
     -- Apply deadzone and normalize
     if math.abs(percent) < gamepad.STICK_DEADZONE then
         return 0
     else
-        return (percent - lib.sign(percent) * gamepad.STICK_DEADZONE) / (1 - gamepad.STICK_DEADZONE)
+        local normalizedPercent = (percent - lib.sign(percent) * gamepad.STICK_DEADZONE) / (1 - gamepad.STICK_DEADZONE)
+        local expoAdjusted = gamepad.expoPercent(math.abs(normalizedPercent), gamepad.axisExpoFactor) -- Apply exponent to absolute value
+        return lib.sign(percent) * expoAdjusted -- Restore the original sign
     end
 end
 
@@ -224,252 +232,95 @@ function gamepad.mapAxes(state, axesConfig)
 end
 
 
---- Button configuration handling
---------------------------------
-local function parseButtonAction(actionName, config)
-    local buttonConfigs = {}
-    local buttonCombo = config:split("+")
-    for _, buttonAndEvent in ipairs(buttonCombo) do
-        local buttonAndEventParts = buttonAndEvent:split("_")
-        local btName = buttonAndEventParts[1]
-        local btNameLower = buttonAndEventParts[1]:lower()
-        local event = buttonAndEventParts[2] or "released" -- Default event is "released"
-        event = event:lower()
-        -- check BT name with the buttonDef
-        local btIndex = buttonDefLower[btNameLower]
-        if btIndex == nil then
-            uprint("*** WARNING!! *** Invalid button name: " .. btName)
-            -- still write the button name to the config, but set the index to -1
-            btIndex = -1
-        end
-        uprint(actionName..": " .. btName .. ", event: " .. event)
-        table.insert(buttonConfigs, {btName = btName, btIndex=btIndex, event = event:lower()})
-    end
-    return buttonConfigs
-end
-
--- Convert the button configuration to buttonActions table
-function gamepad.updateButtonActions(buttons)
-    local buttonActions = {}
-    local keys = {}
-    for actionName in pairs(buttons) do
-        table.insert(keys, actionName)
-    end
-    table.sort(keys)
-
-    for _, actionName in ipairs(keys) do
-        local config = buttons[actionName]
-        buttonActions[actionName] = parseButtonAction(actionName, config)
-    end
-    return buttonActions
-end
-
-
--- This is the simple version of checkButtonHold, only check the hold property
-function gamepad.checkButtonHoldState(buttonState, buttonConfigs)
-    if buttonConfigs == nil then
-        -- uprint("Button config is nil")
-        return false
-    end
-    -- Single button: When event set to held, check hold property instead.
-    if #buttonConfigs == 1 then
-        local buttonConfig = buttonConfigs[1]
-        local state = buttonState[buttonConfig.btIndex]
-        if state and state.hold == true then
-            return true
-        end
-        return false
-    end
-
-    -- Multi button combo: Ignore user defined buttonConfig.event, only check hold property.
-    local allButtonStateMatch = true
-    for _, buttonConfig in ipairs(buttonConfigs) do
-        local state = buttonState[buttonConfig.btIndex]
-        if not (state and state.hold == true) then
-            -- uprint("Button state not match")
-            allButtonStateMatch = false
-            break
-        end
-    end
-
-    return allButtonStateMatch
-end
-
--- This is the real button pressed state
--- not as the same as event=pressed or event=held
--- Single button: When event set to held, check hold property instead.
-function gamepad.checkButtonHold(buttonState, buttonConfigs)
-    if buttonConfigs == nil then
-        -- uprint("Button config is nil")
-        return false
-    end
-    -- Single button: When event set to held, check hold property instead.
-    if #buttonConfigs == 1 then
-        local buttonConfig = buttonConfigs[1]
-        local state = buttonState[buttonConfig.btIndex]
-        if buttonConfig.event then 
-            if buttonConfig.event == "held" then
-                if state and state.hold == true then
-                    return true
-                end
-            else
-                if state and state.event == buttonConfig.event then
-                    return true
-                end
-            end
-        end
-        return false
-    end
-
-    -- Multi button combo: Ignore user defined buttonConfig.event, only check hold property.
-    local allButtonStateMatch = true
-    for _, buttonConfig in ipairs(buttonConfigs) do
-        local state = buttonState[buttonConfig.btIndex]
-        if not (state and state.hold == true) then
-            -- uprint("Button state not match")
-            allButtonStateMatch = false
-            break
-        end
-    end
-
-    return allButtonStateMatch
-end
-
-function gamepad.checkButtonState(buttonState, buttonConfigs)
-    if buttonConfigs == nil then
-        return false
-    elseif #buttonConfigs > 1 then  -- Combo buttons, use checkButtonHold instead
-        return gamepad.checkButtonHold(buttonState, buttonConfigs)
-    elseif #buttonConfigs == 0 then
-        uprint("Button config is empty.")
-        return false
-    end
-    -- Check single button state or multi-button combo
-    local buttonConfig = buttonConfigs[1]
-    local state = buttonState[buttonConfig.btIndex]
-    if not state then
-        uprint("Button name is wrong: " .. buttonConfig.btName)
-        return false
-    elseif state.event == buttonConfig.event or (buttonConfig.event == "doubleclick" and state.doubleclick==true) then
-        return true
-    end
-    return false
-end
-
--- Check if the button is a hold button
-function gamepad.isAHoldButton(buttonConfigs)
-    -- combo butons are hard to hold, just use thme as toggle not hold
-    if buttonConfigs == nil or #buttonConfigs > 1 then
-        return false
-    end
-    local buttonConfig = buttonConfigs[1]
-    if buttonConfig.event == "held" then
-        return true
-    end
-    return false
-end
-
-
-
-
----------- XInput event handling ----------
-
+-- XInput event handling 
+----------------------------------------
 
 local buttonState = {}
 local debounceTime = 0.01 -- Debounce time interval (seconds), seems not working well 
-local doubleClickTime = 0.925 -- Double click time interval (seconds)
-local heldTime = 0.6 -- Time interval to consider a button as held (seconds)
+local doubleClickTime = 0.3 -- Double click time interval (seconds)
+local heldTime = 0.4 -- Time interval to consider a button as held (seconds)
 local buttonEventTriggered = 0 -- Determines whether to emit an event
-
 -- button event generator
--- state.hold: true/false, the 'real' push down state of the button. This allows the callback to determine the holding state.
--- state.event: nil/pressed/released/held/heldreleased/doubleclick. For easy callback handling.
--- # The difference between state.hold and event=held: 
--- hold triggers as long as the button is pressed (including press and held), 
--- held triggers only after the button has been held for a certain period of time
--- # Single trigger and multiple triggers
--- press/release will only trigger once to avoid the callback needing to handle it separately
--- hold/held will trigger continuously
--- hold_release is usually not used, it just allows the callback to skip detecting the release state
+--------------------------------
+-- For easy callback handling.
+-- state.holding: true/false, triggers immediately when the button is pressed and continues to emit until released. This represents the state coming from gamepad.state.
+-- state.event: nil/pressed/released. These events occur once when the button is pressed or released, signaling specific actions.
+-- state.condition: nil/push/held/doubleclick. Represents special states triggered after specific conditions are met.
+-- Unlike state.holding, condition=held only triggers once after the button is held for a certain duration.
 local function updateButtonState(btIndex, isPressed)
     local currentTime = os.clock()
     if not buttonState[btIndex] then
-        buttonState[btIndex] = {hold = false, event = nil, doubleclick=false, lastPress = nil, lastPressTime = 0, lastReleaseTime = 0, clickCount = 0, releaseCount = 0}
+        buttonState[btIndex] = {holding=false, event=nil, condition=nil, pressTime=0, releaseTime=0, clickCount=0}
     end
 
+    local lastState = {}
+    -- Fiil last state fields
+    for k, v in pairs(buttonState[btIndex]) do
+        lastState[k] = v
+    end
     local state = buttonState[btIndex]
-    local newPressed = isPressed
-
-    -- clear event
-    if state.event ~= "released" then -- record non-released event
-        state.lastPress = state.event
-    end
+    -- Initialize new state
+    -- state.condition is always kept, this helps to distinguish what is happening.
+    state.holding = isPressed
     state.event = nil
-    state.doubleclick = false
 
-    local lastPress = state.lastPress
-    local pressTimeDelta = currentTime - state.lastPressTime
-    local releaseTimeDelta = currentTime - state.lastReleaseTime
+    local pressTimeDelta = currentTime - lastState.pressTime
+    local releaseTimeDelta = currentTime - lastState.releaseTime
     if isPressed then
-        if not state.hold then -- new pressed
+        if not lastState.holding then -- new pressed 
             -- debounce, ignore the press withing debounceTime
             if releaseTimeDelta < debounceTime then
-                -- newPressed = false
+                -- supress the holding state to prevent emit a event
+                state.holding = false
                 uprint ("debounce1:"..releaseTimeDelta)
             else
+                state.condition = "push"
                 state.event = "pressed"
-                state.lastPressTime = currentTime
-                buttonEventTriggered = buttonEventTriggered + 1
+                state.pressTime = currentTime
             end
         else
-            -- Will not trigger new pressed event when keep pressing for very short time
-            if pressTimeDelta >= heldTime then
-                state.event = "held"
+            -- Triggers held event when the button is held for a certain duration
+            if lastState.condition ~= "held" and pressTimeDelta >= heldTime then
+                state.condition = "held"
+                state.event = "pressed"
             end
-            -- Even held event not triggered, we still need inform state.hold for callbacks (with state.event=nil)
-            buttonEventTriggered = buttonEventTriggered + 1
         end
 
+
     else -- not pressed now
-        if state.hold then
+        if lastState.holding then
             -- debounce, ignore the release withing debounceTime
             if pressTimeDelta < debounceTime then
                 -- override the pressed state to prevent the release event
-                newPressed = true
+                state.holding = true
                 uprint ("debounce2:"..pressTimeDelta) -- never saw this happen
             else
-                state.releaseCount = 0
                 state.event = "released"
-                state.lastReleaseTime = currentTime
-                buttonEventTriggered = buttonEventTriggered + 1
-
-                if releaseTimeDelta > doubleClickTime then
-                    -- reset clickCount when it exceeds double click time limit
-                    local tmpCnt = state.clickCount 
-                    if lastPress=="held" then -- released from held, will not trigger double click count
-                        state.clickCount = 0
-                        state.event = "heldreleased"
-                    else
-                        state.clickCount = 1
-                    end
-                    -- uprint("time: " .. releaseTimeDelta .. " ,cnt: " .. tmpCnt.."->"..state.clickCount)
-                else
-                    state.clickCount = state.clickCount + 1
-                    -- uprint("time: " .. releaseTimeDelta .. " ,cnt: " .. state.clickCount)
-                    if state.clickCount > 1 then
-                        state.doubleclick = true
-                        state.clickCount = 0
-                        buttonEventTriggered = buttonEventTriggered + 1
-                    end
-                end
+                state.releaseTime = currentTime
             end
         else -- previous state is not pressed
-            -- do nothing        
+            -- do nothing
         end
     end
 
-    -- update state
-    state.hold = newPressed
+    -- Double click handling
+    if state.condition=="push" and state.event == "pressed" then -- Filter out held condition
+        if pressTimeDelta < doubleClickTime then
+            state.clickCount = state.clickCount + 1
+            if state.clickCount > 1 then
+                state.condition = "doubleclick"
+                state.clickCount = 0
+            end
+        else
+            -- reset clickCount when it exceeds double click time limit
+            state.clickCount = 1
+        end
+    end
+
+    -- Helps quickly determine if we need to emit the event
+    if state.holding or state.event then
+        buttonEventTriggered = buttonEventTriggered + 1
+    end
 end
 
 -- Update the state of all buttons
@@ -493,26 +344,6 @@ local function updateAllButtonStates(state)
     end
 end
 
--- For 1 button test only (only 1 btn_lastEvent)
-local btn_lastEvent =nil
-function gamepad.buttonDebug(state)
-    local btn_e = state.event
-    if btn_e then
-        if btn_lastEvent == "held" and btn_e == "held" then
-           -- do nothing
-        else
-            -- for k, v in pairs(state) do
-            --     uprint("Key: " .. tostring(k) .. "=" .. tostring(v))
-            -- end
-            uprint("buttonEvent: " .. btn_e)
-            if state.doubleclick then
-                uprint("buttonEvent: +doubleclick")
-            end
-        end
-        btn_lastEvent = btn_e
-    end
-end
-
 local lastXinputTime = os.clock()
 local lastuprintTime = os.clock()
 uevr.sdk.callbacks.on_xinput_get_state(function(retval, user_index, state)
@@ -533,6 +364,241 @@ uevr.sdk.callbacks.on_xinput_get_state(function(retval, user_index, state)
     events:emit("xinput_state_changed", retval, user_index, state)
 
 end)
+
+
+
+-- Button configuration handling
+----------------------------------------
+
+local function parseButtonConfigs(actionName, buttonConfig)
+    local buttonAction = {}
+    buttonAction.name = actionName
+    buttonAction.mappings = {}
+    local buttonCombo = buttonConfig:split("+")
+    for _, buttonAndEvent in ipairs(buttonCombo) do
+        local buttonAndEventParts = buttonAndEvent:split("_")
+        local btName = buttonAndEventParts[1]
+        local btNameLower = buttonAndEventParts[1]:lower()
+        local event = buttonAndEventParts[2] or "released" -- Default event is "released"
+        event = event:lower()
+        -- check BT name with the buttonDef
+        local btIndex = buttonDefLower[btNameLower]
+        if btIndex == nil then
+            uprint("*** WARNING!! *** Invalid button name: " .. btName)
+            -- still write the button name to the config, but set the index to -1
+            btIndex = -1
+        end
+        uprint(actionName..": " .. btName .. ", event: " .. event)
+        table.insert(buttonAction.mappings, {btName = btName, btIndex=btIndex, event = event:lower()})
+    end
+    return buttonAction
+end
+
+-- Convert the button configuration to buttonActions table
+-- button configuration (control.buttons) --parser-> buttonActions
+-- Structure of buttonActions:
+-- buttonActions = {
+--     buttonAction = {
+--         name = actionName,
+--         mappings = {
+--             {btName = "A", btIndex = 12, event = "pressed"},
+--             {btName = "B", btIndex = 13, event = "released"}
+--         }
+--     }
+-- }
+function gamepad.updateButtonActions(buttons)
+    local buttonActions = {}
+    local keys = {}
+    for actionName in pairs(buttons) do
+        table.insert(keys, actionName)
+    end
+    table.sort(keys)
+
+    for _, actionName in ipairs(keys) do
+        local buttonConfig = buttons[actionName]
+        buttonActions[actionName] = parseButtonConfigs(actionName, buttonConfig)
+    end
+    return buttonActions
+end
+
+
+
+-- Functions to check button states
+----------------------------------------
+
+-- For button debug
+gamepad.buttonDebugEnabled = false
+function gamepad.buttonDebug(buttonName)
+    if not gamepad.buttonDebugEnabled then
+        return
+    end
+    -- btnState should be the same as buttonState
+    -- Just passed as a parameter for debugging purposes
+    local state = buttonState[gamepad.buttonDef[buttonName]]
+    if not state then
+        uprint("buttonDebug: " .. buttonName .. " is not found.")
+        return
+    end
+    local btn={}
+    btn.e = state.event
+    if btn.e then
+        btn.h = state.holding and "[o]" or "[ ]"
+        btn.c = state.condition
+        uprint("buttonDebug: " .. buttonName .. " " .. tostring(btn.h) .. "" .. tostring(btn.c) .. "_" .. tostring(btn.e))
+    end
+end
+
+-- Check all buttons are set to held event
+function gamepad.isHeldButtons(buttonAction)
+    if not buttonAction then
+        return false
+    end
+    local mappings = buttonAction.mappings
+    if mappings == nil or #mappings < 1 then
+        return false
+
+    -- Combo buttons are treat as held button by default
+    elseif #mappings > 1 then
+        return true
+    end
+
+    -- Single button
+    local mapping = buttonAction.mappings[1]
+    if mapping.event == "held" then
+        return true
+    end
+end
+
+
+-- Only checks state.holding property.
+-- So the event will be triggered every cycle when the button is holding.
+function gamepad.checkButtonsNotHolding(buttonAction)
+    local mappings = buttonAction.mappings
+    if mappings == nil then
+        return false
+    end
+    local allButtonsStateMatch = true
+    for _, mapping in ipairs(mappings) do
+        local state = buttonState[mapping.btIndex]
+        if not (state and state.holding == false) then
+            -- uprint("Button state not match")
+            allButtonsStateMatch = false
+            break
+        end
+    end
+
+    return allButtonsStateMatch
+end
+-- Only checks state.holding property.
+-- So the event will be triggered every cycle when the button is holding.
+function gamepad.checkButtonsHolding(buttonAction)
+    if not buttonAction then
+        return false
+    end
+    local mappings = buttonAction.mappings
+    if mappings == nil then
+        return false
+    end
+    local allButtonsStateMatch = true
+    for _, mapping in ipairs(mappings) do
+        local state = buttonState[mapping.btIndex]
+        if not (state and state.holding == true) then
+            -- uprint("Button state not match")
+            allButtonsStateMatch = false
+            break
+        end
+    end
+
+    return allButtonsStateMatch
+end
+
+
+-- Check one or all buttons released event
+-- both state.holding and event.released are checked to make sure the event will be triggered only once.
+function gamepad.checkButtonsReleased(buttonAction)
+    -- Check all buttons are NOT holding first
+    if not gamepad.checkButtonsNotHolding(buttonAction) then
+        return false
+    end
+
+    -- We need 1 released event (emitted by the latest released button)
+    local mappings = buttonAction.mappings
+    local oneButtonsStateMatch = false
+    for _, mapping in ipairs(mappings) do
+        local state = buttonState[mapping.btIndex]
+        if (state and state.event== "released") then
+            oneButtonsStateMatch = true
+            break
+        end
+    end
+
+    return oneButtonsStateMatch
+end
+
+-- Check one or all buttons pressed event
+-- both state.holding and event.pressed are checked to make sure the event will be triggered only once.
+function gamepad.checkButtonsPressed(buttonAction)
+
+    -- Check all buttons are holding first
+    if not gamepad.checkButtonsHolding(buttonAction) then
+        return false
+    end
+
+    -- We need 1 pressed event (emitted by the latest pressed button)
+    local mappings = buttonAction.mappings
+    local oneButtonsStateMatch = false
+    for _, mapping in ipairs(mappings) do
+        local state = buttonState[mapping.btIndex]
+        if (state and state.condition~="held" and state.event== "pressed") then -- held will triggers 2nd pressed event
+            oneButtonsStateMatch = true
+            break
+        end
+    end
+
+    return oneButtonsStateMatch
+end
+-- Check if the specific button actions match the button state
+function gamepad.checkButtonsState(buttonAction)
+    if not buttonAction then
+        return false
+    end
+    local mappings = buttonAction.mappings
+    if mappings == nil then
+        return false
+    elseif #mappings == 0 then
+        uprint("Button config is empty.")
+        return false
+
+    elseif #mappings > 1 then
+    -- Combo buttons, use checkButtonsPressed instead
+        return gamepad.checkButtonsPressed(buttonAction)
+    end
+
+    -- Single button
+    local mapping = mappings[1]
+    local state = buttonState[mapping.btIndex]
+
+    if not state then
+        uprint("Button name is wrong: " .. mapping.btName)
+        return false
+
+    -- User customized action events:
+    -- pressed, released, held, doubleclick (default: released)
+    elseif state.event == "released" then
+        if mapping.event == "released" and state.condition ~= "held" then -- condition matches push and doubleclick
+            return true
+        elseif mapping.event == "doubleclick" and state.condition == "doubleclick" then
+            return true
+        end
+    elseif state.event == "pressed" then
+        if mapping.event == "held" and state.condition == "held" then
+            return true
+        elseif mapping.event == "pressed" and state.condition ~= "held" then -- condition matches push and doubleclick
+            return true
+        end
+    end
+    return false
+end
 
 
 return gamepad

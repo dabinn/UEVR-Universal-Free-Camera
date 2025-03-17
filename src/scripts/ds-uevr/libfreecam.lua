@@ -5,8 +5,8 @@
 --          be used as a standalone universal plugin or customized with specific 
 --          parameters for other game plugins.
 -- License: MIT
--- Version: 1.0.1
--- Date:    2025/02/09
+-- Version: 1.2.0
+-- Date:    2025/03/16
 -- Author:  Dabinn Huang @DSlabs
 -- Powered by TofuExpress --
 
@@ -18,10 +18,13 @@ local lib=require("ds-uevr/libcommon")
 local events = require("ds-uevr/libevents")
 local eventgen = require("ds-uevr/libeventgen")
 local gamepad = require("ds-uevr/libgamepad")
+-- gamepad.buttonDebugEnabled = true
+
 local te=TofuExpress
 local function uprint(...)
     lib.uprint(uId, ...)
 end
+
 
 -- Indicates that the plugin is loaded, or for data exchange
 if te.freecam == nil then
@@ -50,16 +53,16 @@ local freecamControlType = {
 -- Default Parameters
 local cfg = freecam.cfg
 cfg.opt = {
-    enableGuiToggle = false, -- Disable game GUI when free camera is enabled
+    uevrAttachCameraCompatible = false, -- Compatible with UEVR's attached camera feature, affecting the camera offset value in the UEVR interface.
+    autoGameMenuToggle = false, -- Disable game GUI when free camera is enabled
+    freecamInvertPitch = false, -- Invert the pitch of the free camera
+    levelFlight = true, -- The vertical orientation of the camera does not affect the flight altitude.
     freecamControlScheme = freecamControlType.TPS, -- Control scheme for free camera
     -- freecamControlScheme = controlType.Space, -- Control scheme for free camera
-    freecamFollowPosition = true, -- Follows game camera's position in free camera mode, or the object may run away from the camera.
-    freecamFollowRotation = false, -- It feels less `free` when following the rotation of the game camera.
-    freecamKeepPosition = false,  -- Don't reset the free camera's position while switching cameras.
-    keepOrbitCamPosition = false, -- Freecam will synchronize the position of the orbit camera.
-    levelFlight = true, -- The vertical orientation of the camera does not affect the flight altitude.
-    cam_invert_pitch = false,
+    follow = true, -- Follow both the game camera's position and rotation
+    followPositionOnly = false, -- Only follow the game camera's position
     recenterVROnCameraReset = true, -- Reset the camera and recenter VR at the same time
+    orbitcamSyncOrientationToFreecam = true, -- Sync the orientation of the orbit camera to the free camera
 }
 local opt = cfg.opt
 
@@ -92,11 +95,21 @@ controls[camType.default] = {
 }
 controls[camType.free] = {
     buttons = {
-        active = "L3_held",
-        deactive = "L3",
-        resetCam = "R3",
-        speedIncrease = "RB",
-        speedDecrease = "LB",
+        active = "L3_held", -- Activate free camera
+        deactive = "L3", -- Deactivate free camera
+        resetCam = "R3", -- Reset the camera
+        resetAll = "R3_held", -- Reset both the camera and the custom view
+        speedIncrease = "RB", -- Increase movement speed
+        speedDecrease = "LB", -- Decrease movement speed
+        levelFlight = "X", -- Toggle level flight / omni-directional flight mode
+        omniFlightWithSpaceControl = "X_held", -- Enable omni-directional flight mode with space control scheme
+        followOn = "Y", -- Enable follow mode
+        followPositionOnly = "Y_doubleclick", -- Enable follow position only mode
+        followOff = "Y_held", -- Disable follow mode (Hold the camera)
+        viewCycle = "Back", -- Cycle through saved views
+        viewSave = "Back_held", -- Save the current view
+        autoGameMenuToggle = "Start", -- Hide the game menu automatically when free camera is enabled
+        -- disable = "B", -- for debug only
     },
     axes = freecamAxes[freecamControlType.TPS],
 }
@@ -129,16 +142,16 @@ local camButtonActions = {} -- Store button actions for different camera modes
 -- Axes configuration for current camera mode
 local currCamModeAxes = controls[camType.default].axes
 
--- Speed settings for different freecamMode
+-- Speed settings for different camMode
 cfg.spd={}
 cfg.spd[camType.free] = {
     speedTotalStep = 10,
-    move_speed_max = 10000, -- cm per second
+    move_speed_max = 50000, -- cm per second
     move_speed_min = 50,
-    rotate_speed_max = 180, -- degrees per second
-    rotate_speed_min = 90, -- degrees per second
-    currMoveStep = 5,
-    currRotStep = 5
+    rotate_speed_max = 270, -- degrees per second
+    rotate_speed_min = 150, -- degrees per second
+    currMoveStep = 4,
+    currRotStep = 4
 }
 cfg.spd[camType.orbit] = {
     speedTotalStep = 1, -- 1: no speed adjustment, only needs to set the max speed
@@ -156,13 +169,15 @@ cfg.spd[camType.scene] = {
 }
 local spd = cfg.spd[1]
 
--- Camera offsets by different scenes
--- Currently only support .x value (For dolly)
-local camOffsets = {
-    Vector3f.new(0, 0, 0),
-}
-local camOffsetsPresetNo = 1
-local camOffset=Vector3f.new(0, 0, 0)
+-- Default camera view offsets
+local camViewPresets = {}
+-- create default preset
+for i = 1, 2 do
+    camViewPresets[i] = {}
+    camViewPresets[i].relPos = Vector3f.new(0, 0, 0)
+    camViewPresets[i].relRot = Vector3f.new(0, 0, 0)
+end
+local camViewPresetNo = 1
 
 -- Set libgamepad's interceptConfig based on axis and button configurations
 -- = nil: use default config (intercepts all)
@@ -171,26 +186,32 @@ local customInterceptConfig = {}
 
 
 -- local variables
-local freeCamMode = camType.default
+local currCamMode = camType.default
 local cam1ExitMode = camType.default -- Which Mode to switch to when exiting freecam1
 
 -- Use Vector3d if this is a UE5 game (double precision)
+local gameCamPos = Vector3f.new(0, 0, 0)
+local gameCamRot = Vector3f.new(0, 0, 0)
+local freeCamPos = Vector3f.new(0, 0, 0) -- Absolute position, including camView offset.
+local freeCamRot = Vector3f.new(0, 0, 0)
+local freeCamPosOffset = Vector3f.new(0, 0, 0) -- Offset from the game camera's local position
+local freeCamRotOffset = Vector3f.new(0, 0, 0)
+local camViewPosOffset = Vector3f.new(0, 0, 0)
+local camViewRotOffset = Vector3f.new(0, 0, 0)
+local freecamReinitialize = true
+
 local inputPos = Vector3f.new(0, 0, 0)
 local inputRot = Vector3f.new(0, 0, 0)
-local orbitCamOffsetPos = Vector3f.new(0, 0, 0)
-local orbitCamOffsetRot = Vector3f.new(0, 0, 0)
-local camOffsetTransformedLR = {}
 
-local lastPosLR ={}
-local lastRotLR ={}
-local camPosLR = {}
-local camRotLR = {}
+
+local freecamEnabled = true
+local dollyKeyHeld = false
 
 local viewTargetPos = nil -- Used for Orbit camera mode
-local dollyKeyHeld = false
 local moveSpeed = 0
 local rotSpeed = 0
 
+local firstEye = true -- Used to determine the first eye in the stereo view offset calculation
 
 -- XYZ Motions
 ----------------------------------------
@@ -263,7 +284,7 @@ end
 
 local function rotateCam(pctX, pctY, deltaTime) -- send delta rotation
     -- Calculate rotation deltas
-    local rotateDeltaX = pctY * rotSpeed * deltaTime * (opt.cam_invert_pitch and -1 or 1)
+    local rotateDeltaX = pctY * rotSpeed * deltaTime * (opt.freecamInvertPitch and -1 or 1)
     local rotateDeltaY = pctX * rotSpeed * deltaTime
 
     -- Update inputRot
@@ -273,47 +294,32 @@ local function rotateCam(pctX, pctY, deltaTime) -- send delta rotation
 
 end
 
--- Transformations
-----------------------------------------
-local function rotateAroundTarget(position, rotation, targetPos)
-
-    local offsetPosTotal = orbitCamOffsetPos + camOffset
-    local dollyDistance = offsetPosTotal.x
-
-    -- Calculate the offset of the camera relative to targetPos
-    local distance =(position - targetPos):length()
-
-    -- UEVR's camera maynot  point to the targetPos, recalc it's rotation
-    -- local newRot = rotation + offsetRot
-    local currentRot = lib.kismet_math:FindLookAtRotation(position, targetPos)
-    local newRot = lib.wrapRotationWithPitchLimit(currentRot + orbitCamOffsetRot)
-    -- prevent offsetRot from continuously increasing in the background
-    orbitCamOffsetRot  = newRot - currentRot
-    -- lib.lzprint("newRot.x: " .. newRot.x .. ", offsetRot.x: " .. offsetRot.x)
-    -- lib.lzprint("newRot.y: " .. newRot.y .. ", offsetRot.y: " .. offsetRot.y)
-
-
-    -- Pretend to place the camera at targetPos, rotate it, and then move it backward
-    local newPos = targetPos - lib.kismet_math:Conv_RotatorToVector(newRot) * (distance-dollyDistance)
-
-    return newRot, newPos
-end
-
 
 -- Public Functions
 ----------------------------------------
 
+local function resetCam()
+    -- Force freecam re-initialized to gameCam's Pos/Rot
+    freecamReinitialize = true
+    -- Re-applying the camera view offset
+    lib.xyzSetInPlace(camViewPosOffset, camViewPresets[camViewPresetNo].relPos)
+    lib.xyzSetInPlace(camViewRotOffset, camViewPresets[camViewPresetNo].relRot)
+end
+
 function freecam.resetCam()
     uprint("Reset camera.")
-    inputPos = Vector3f.new(0, 0, 0)
-    inputRot = Vector3f.new(0, 0, 0)
-    orbitCamOffsetPos = Vector3f.new(0, 0, 0)
-    orbitCamOffsetRot = Vector3f.new(0, 0, 0)
-    camOffsetTransformedLR = {}
-    lastPosLR = {}
-    lastRotLR = {}
-    camPosLR = {}
-    camRotLR = {}
+    resetCam()
+end
+function freecam.resetAll()
+    uprint("Reset ALL.")
+    -- Force freecam re-initialized to gameCam's Pos/Rot
+    freecamReinitialize = true
+    -- Clear the current offsets
+    lib.xyzSetInPlace(camViewPosOffset, Vector3f.new(0, 0, 0))
+    lib.xyzSetInPlace(camViewRotOffset, Vector3f.new(0, 0, 0))
+
+    -- Set follow mode back to default
+    freecam.followModeToggle(true)
 end
 
 -- Set the target position for the orbit camera
@@ -321,29 +327,62 @@ function freecam.setViewTargetPos(pos)
     viewTargetPos = pos
 end
 
-function freecam.setCamOffsets(offsets, presetNo)
-    local lastPresetNo = camOffsetsPresetNo
-    camOffsets = offsets
-    freecam.switchCamOffsets(presetNo) -- Will update camOffsetsPresetNo
+-- For scene swithing
+-- Replaced the whole camViewPresets with the defination of the new scene
+function freecam.setSceneCamViewPresets(sceneCamViewPresets, presetNo)
+    local lastPresetNo = camViewPresetNo
+    camViewPresets = sceneCamViewPresets
+    freecam.switchCamViews(presetNo) -- Will update camOffsetsPresetNo
     return lastPresetNo
 end
 
-function freecam.switchCamOffsets(presetNo)
+function freecam.switchCamViews(presetNo)
     inputPos = Vector3f.new(0, 0, 0) -- reset inputPos but keep inputRot
     if presetNo == 0 then -- switch to next preset
-        camOffsetsPresetNo = camOffsetsPresetNo + 1
-        if camOffsetsPresetNo > #camOffsets then
-            camOffsetsPresetNo = 1
+        camViewPresetNo = camViewPresetNo + 1
+        if camViewPresetNo > #camViewPresets then
+            camViewPresetNo = 1
         end
     else
-        camOffsetsPresetNo = presetNo
+        camViewPresetNo = presetNo
     end
 
-    -- Clear input offset (for orbit cam)
-    orbitCamOffsetPos = Vector3f.new(0, 0, 0)
+    -- Force freecam re-initialized to gameCam's Pos/Rot
+    freecamReinitialize = true
+    lib.xyzSetInPlace(camViewPosOffset, camViewPresets[camViewPresetNo].relPos)
+    lib.xyzSetInPlace(camViewRotOffset, camViewPresets[camViewPresetNo].relRot)
 
-    lib.xyzSetInPlace(camOffset, camOffsets[camOffsetsPresetNo])
-    uprint("Switch to camera preset "..camOffsetsPresetNo.." ,offset: " .. camOffset.x .. ", " .. camOffset.y .. ", " .. camOffset.z )
+    uprint("Switch to camera preset "..camViewPresetNo.." ,offset: " .. camViewPosOffset.x .. ", " .. camViewPosOffset.y .. ", " .. camViewPosOffset.z )
+end
+
+function freecam.saveCamView()
+    local presetNo = camViewPresetNo
+
+    -- Calulate current offset
+    -- relative position in gameCam's local space (Same as follow camera position's calculation)
+    local posOffset = Vector3f.new(0, 0, 0)
+    local rotOffset = Vector3f.new(0, 0, 0)
+
+    -- if not viewTargetPos then
+    --     posOffset = lib.kismet_math:LessLess_VectorRotator(freeCamPos - gameCamPos, gameCamRot)
+    -- else
+    --     local lookAtRot = lib.kismet_math:FindLookAtRotation(freeCamPos, viewTargetPos)
+    --     posOffset = lib.kismet_math:LessLess_VectorRotator(freeCamPos - gameCamPos, lookAtRot)
+    -- end
+    -- rotOffset = freeCamRot - gameCamRot
+    posOffset = freeCamPosOffset:clone()
+    rotOffset = freeCamRotOffset:clone()
+
+    -- Update preset data
+    camViewPresets[presetNo].relPos = posOffset
+    camViewPresets[presetNo].relRot = rotOffset
+    -- Also record the absolute position, which might be useful for holding the camera.
+    camViewPresets[presetNo].absPos = freeCamPos
+    camViewPresets[presetNo].absRot = freeCamRot
+    uprint("Save camera view preset "..presetNo..", offset: " .. posOffset.x .. ", " .. posOffset.y .. ", " .. posOffset.z)
+
+    -- Set new view
+    freecam.switchCamViews(presetNo)
 end
 
 -- Custom contorl configuration, Settings will take effect after toggling the camera mode.  
@@ -374,44 +413,140 @@ local function updateButtonActions(camMode, buttons)
 end
 local function setCurrCamModeAxes(camMode)
     currCamModeAxes = controls[camMode].axes -- Mainly used by onXinputStateChanged()
-    uprint("* Active axes:")
-    lib.printTable(currCamModeAxes)
+    local axesMsgTitle = "* Active axes:"
+    local axesMsg = {}
+    for k, v in pairs(currCamModeAxes) do
+        local msg = k..": "..v[1]
+        if v[2] then
+            msg = msg .. "/" .. v[2]
+        end
+        axesMsg[k] = msg
+    end
+    if next(axesMsg) then
+        uprint(axesMsgTitle)
+        local msgOrder = {"move", "rot", "elev"}
+        for _, v in ipairs(msgOrder) do
+            if axesMsg[v] then
+                uprint(axesMsg[v])
+            end
+        end
+    else
+        uprint(axesMsgTitle.." None.")
+    end
 end
--- help function for freeCamModeToggle
+
+function freecam.setFreecamControlScheme(controlScheme)
+    if not freecamAxes[controlScheme] then
+        uprint("Invalid control scheme: " .. controlScheme)
+        return
+    end
+    opt.freecamControlScheme = controlScheme
+    cfg.controls[camType.free].axes = freecamAxes[controlScheme]
+    setCurrCamModeAxes(currCamMode)
+end
+function freecam.levelFlightModeToggle(onOff)
+    local lastLevelFlight = opt.levelFlight
+    if onOff == nil then
+        opt.levelFlight = not opt.levelFlight
+    else
+        opt.levelFlight = onOff
+    end
+    if lastLevelFlight == opt.levelFlight and opt.freecamControlScheme == freecamControlType.TPS then
+        return
+    end
+    local msg = opt.levelFlight and "Level" or "Omin"
+    uprint("# " .. msg .. " Flight Mode.")
+    if opt.freecamControlScheme ~= freecamControlType.TPS then
+        freecam.setFreecamControlScheme(freecamControlType.TPS)
+    end
+end
+function freecam.omniFlightWithSpaceControl()
+    if opt.freecamControlScheme == freecamControlType.Space then
+        return
+    end
+    opt.levelFlight = false
+    uprint("# Space Control Scheme")
+    freecam.setFreecamControlScheme(freecamControlType.Space)
+end
+
+function freecam.followPositionOnly()
+    if opt.followPositionOnly then
+        return
+    end
+    uprint("# Follow Mode: Position Only")
+    opt.follow = true
+    opt.followPositionOnly = true
+end
+function freecam.followModeToggle(onOff)
+    local lastFollow = opt.follow
+    if onOff == nil then
+        opt.follow = not opt.follow
+    else
+        opt.follow = onOff
+    end
+    if lastFollow == opt.follow and not opt.followPositionOnly then
+        return
+    end
+    opt.followPositionOnly = false
+    local msg = opt.follow and "On" or "Off"
+    uprint("# Follow Mode: " .. msg)
+end
+
+function freecam.gameMenuToggle()
+    opt.autoGameMenuToggle = not opt.autoGameMenuToggle
+    -- autoGameMenuToggle is a flag that is checked during freecam, and we also change the game menu visibility when the user toggles it.
+    lib.enableGUI(not opt.autoGameMenuToggle)
+end
+
+function freecam.enable(enabled)
+    if enabled == freecamEnabled then
+        return
+    end
+
+    if not enabled then
+        if opt.uevrAttachCameraCompatible then
+            lib.resetModValueCamOffset()
+        end
+    end
+    local enableStr = enabled and "enabled" or "disabled"
+    uprint("# Freecam " .. enableStr..".")
+    freecamEnabled = enabled
+end
+
+-- help function for camModeToggle
 local function camModeToggleUpdate(camMode)
     updateButtonActions(camMode, controls[camMode].buttons)
     setCurrCamModeAxes(camMode)
-    spd = cfg.spd[camMode]
-    updateCamSpeed()
+    if cfg.spd[camMode] then
+        spd = cfg.spd[camMode]
+        updateCamSpeed()
+    end
 end
 
 function freecam.camModeToggle(camMode)
-    freeCamMode = camMode -- update global variable
-    lib.enableGUI(true) -- Show the game menu when free camera is disabled
+    currCamMode = camMode -- update global variable
+    local enableGUI = true
 
     if camMode == camType.free then
         uprint("## FREE CAM ##")
-        if not opt.freecamKeepPosition then
-            freecam.resetCam()
-        end
-        if opt.enableGuiToggle then
-            lib.enableGUI(false)
-        end
-        camModeToggleUpdate(camMode)
-        gamepad.setInterceptConfig(nil) -- Use default config (Intercept all gamepad signals)
         -- Hide the game menu when free camera is enabled
+        if opt.autoGameMenuToggle then
+            enableGUI = false
+        end
+        gamepad.setInterceptConfig(nil) -- Use default config (Intercept all gamepad signals)
     elseif camMode == camType.orbit then
         uprint("## ORBIT CAM ##")
-        camModeToggleUpdate(camMode)
         gamepad.generateAndSetInterceptConfig(controls[camMode])
     elseif camMode == camType.scene then
         uprint("## SCENE CAM ##")
-        camModeToggleUpdate(camMode)
         gamepad.generateAndSetInterceptConfig(controls[camMode])
     else
         uprint("## DEFAULT CAM ##")
         gamepad.setInterceptConfig({}) -- Clear gamepad interception
     end
+
+    camModeToggleUpdate(camMode)
+    lib.enableGUI(enableGUI) -- Show the game menu when free camera is disabled
 
     -- Sets the mode to switch back when exiting free camera
     if camMode ~= 1 then
@@ -422,12 +557,7 @@ end
 
 -- Event Callbacks
 ----------------------------------------
-
 local function onEarlyCalculateStereoViewOffset(device, view_index, world_to_meters, position, rotation, is_double)
-
-    if freeCamMode == camType.default then
-        return
-    end
 
     -- view_index
     -- (UE4) 0: never execute, 1: left eye, 2: right eye/screen
@@ -437,168 +567,159 @@ local function onEarlyCalculateStereoViewOffset(device, view_index, world_to_met
     -- L/R values may not be the same while moving (eye2=eye1 but eye1 ~= next eye2)
     -- It should be OK to use eye 1's view_index to process both eyes, but I have not tested it yet.
     -- Be careful, position variable is constantly reseted by UEVR (after each 2 eyes), Even after assigning position = nwPos
-    
-    if not camPosLR[view_index] then -- initialize
-        lastPosLR[view_index] = lib.xyzSet(position)
-        lastRotLR[view_index] = lib.xyzSet(rotation)
-        camPosLR[view_index] = lib.xyzSet(position)
-        camRotLR[view_index] = lib.xyzSet(rotation)
-        camOffsetTransformedLR[view_index] = Vector3f.new(0, 0, 0)
-    end
-    local camPos = camPosLR[view_index] -- last freecam position
-    local camRot = camRotLR[view_index] -- last freecam rotation
-    -- Debug: Check LR eye position match
-    -- if view_index == 2 then
-    --     if camPosLR[1] ~= camPosLR[2] then
-    --         uprint("eye position mismatch.")
-    --     else
-    --         uprint("eye position match.")
-    --     end
-    -- end
+    -- uprint("view_index: " .. view_index)
 
+    if firstEye then
+        local viewPosOffset = Vector3f.new(0, 0, 0)
+        local viewRotOffset = Vector3f.new(0, 0, 0)
 
-    -- Update camPos/camRot while the UEVR camera changes its position/rotation
-    -- Always update them in scene camera mode, ignoring the follow settings
-    -- Follow Camera Position
-    if opt.freecamFollowPosition or freeCamMode == camType.scene then
-        local lastPosDelta = lib.xyzSub(position, lastPosLR[view_index])
-        camPos = camPos + lastPosDelta
-        lib.xyzSetInPlace(lastPosLR[view_index], position) -- record UEVR cam position, should not counting freecam movement
-    end
-    -- Follows Camera Rotation
-    if opt.freecamFollowRotation or freeCamMode == camType.scene then
-        local lastRotDelta = lib.xyzSub(rotation, lastRotLR[view_index])
-        camRot = lib.wrapRotation(camRot + lastRotDelta)
-        lib.xyzSetInPlace(lastRotLR[view_index], rotation) -- record UEVR cam rotation, should not counting freecam movement
-    end
-
-
-    -- UEVR Camera vectors
-    local uevrCamForward = lib.kismet_math:Conv_RotatorToVector(rotation)
-    local uevrCamRight = lib.kismet_math:GetRightVector(rotation)
-    local uevrCamUp = lib.kismet_math:GetUpVector(rotation)
-
-
-    local newPos = Vector3f.new(0, 0, 0)
-    local newRot = Vector3f.new(0, 0, 0)
-
-    -- Orbit Camera
-    ------------------------------
-    if freeCamMode == camType.orbit then -- Orbit Camera: Rotation center is at the position of game camera's view target
-        orbitCamOffsetPos = orbitCamOffsetPos + inputPos
-        orbitCamOffsetRot = orbitCamOffsetRot + inputRot
-
-        local targetPos = Vector3f.new(0,0,0)
-        if viewTargetPos then
-            targetPos = viewTargetPos
-            -- uprint("targetPos: " .. targetPos.x .. ", " .. targetPos.y .. ", " .. targetPos.z)
+        if freecamReinitialize then -- initialize
+            gameCamPos = lib.xyzSet(position)
+            gameCamRot = lib.xyzSet(rotation)
+            freeCamPos = lib.xyzSet(position)
+            freeCamRot = lib.xyzSet(rotation)
+            freeCamPosOffset = Vector3f.new(0, 0, 0)
+            freeCamRotOffset = Vector3f.new(0, 0, 0)
+            viewPosOffset = camViewPosOffset:clone()
+            viewRotOffset = camViewRotOffset:clone()
+            freecamReinitialize = false
         end
 
-        newRot, newPos = rotateAroundTarget(position, rotation, targetPos)
-        -- newRot = lib.kismet_math:FindLookAtRotation(newPos, targetPos)
+        -- Calculate the new position and rotation
+        local currPos = position + lib.kismet_math:GreaterGreater_VectorRotator(freeCamPosOffset+viewPosOffset, rotation) -- Initial pos/rot
+        local currRot = Vector3f.new(0, 0, 0)
+        local newPos = Vector3f.new(0, 0, 0)  -- Final position/rotation/offsets to record
+        local newRot = Vector3f.new(0, 0, 0)
+        local newPosOffset = Vector3f.new(0, 0, 0)
+        local newRotOffset = Vector3f.new(0, 0, 0)
+        -- World offsets
+        local viewPosOffsetWorld = lib.kismet_math:GreaterGreater_VectorRotator(viewPosOffset, rotation)
+        local inputPosOffsetWorld = Vector3f.new(0, 0, 0)
 
 
-    -- Free Camera/Scene Camera
-    ------------------------------
-    elseif freeCamMode == camType.free or freeCamMode == camType.scene then -- Free Camera/Scene Camera: rotation center is at the position of free camera
 
+        -- Orbit Camera
+        ------------------------------
+        if currCamMode == camType.orbit then -- Orbit Camera: Rotation center is at the position of game camera's view target
 
-        -- #Orientation
-        -- Calculate new orientation base on uevr camera (It is the forward direction of the input)
-        -- kismet_math_library seems to require the nightly build
-        newRot = camRot + inputRot
-        local forward_vector = lib.kismet_math:Conv_RotatorToVector(camRot)
-        local right_vector = lib.kismet_math:GetRightVector(camRot)
-        local up_vector = Vector3f.new(0, 0, 1)
-        -- local up_vector = kismet_math_library:GetUpVector(rot)
-        -- local right_vector = calcRight(forward_vector, up_vector)
-        -- lzprint("Pos: " .. position.x .. ", " .. position.y .. ", " .. position.z)
-
-        -- #Rotation Center
-        -- camPos is the center of rotation
-        if not opt.levelFlight then -- Free Fly
-            -- # Expression:
-            -- newPos = camPos + (inputPos.x * forward_vector) + (inputPos.y * right_vector) + (inputPos.z * up_vector)
-            -- # Decompose the calculation:
-            newPos = Vector3f.new(
-                camPos.x + inputPos.x * forward_vector.x + inputPos.y * right_vector.x + inputPos.z * up_vector.x,
-                camPos.y + inputPos.x * forward_vector.y + inputPos.y * right_vector.y + inputPos.z * up_vector.y,
-                camPos.z + inputPos.x * forward_vector.z + inputPos.y * right_vector.z + inputPos.z * up_vector.z
-            )
-        else -- Level Fly
-            -- Normalize forward_vector and right_vector to maitian the same speed in all directions
-            forward_vector.z = 0
-            forward_vector = lib.normalizeVector(forward_vector)
-            right_vector.z = 0
-            right_vector = lib.normalizeVector(right_vector)
-
-            -- # Expression:
-            -- newPos = camPos + (inputPos.x * forward_vector + inputPos.y * right_vector) + Vector3f.new(0, 0, inputPos.z);
-            -- # Decompose the calculation:
-            newPos = Vector3f.new(
-                camPos.x + inputPos.x * forward_vector.x + inputPos.y * right_vector.x,
-                camPos.y + inputPos.x * forward_vector.y + inputPos.y * right_vector.y,
-                camPos.z + inputPos.z
-            )
-        end
-
-        -- The camoffset here only for Free/Scene Camera mode
-        -- In orbitcam mode, the offset is calulated by orbitAroundTarget(), which is already applied.
-        -- Considering our camera's rotation keep changing, we need to recalculate the offset every time, even if the camOffset does not change.
-        local camOffsetTransformed = camOffsetTransformedLR[view_index]
-        -- remove the applied offset first
-        lib.xyzSubInPlace(newPos, camOffsetTransformed)
-        -- calculcate new transformed camOffset
-        camOffsetTransformed = lib.kismet_math:GreaterGreater_VectorRotator(camOffset, rotation)
-        -- Add the offset to newPos for freeCam to follow its position
-        lib.xyzAddInPlace(newPos, camOffsetTransformed)
-
-        --record the offseted we applied
-        camOffsetTransformedLR[view_index] = camOffsetTransformed
-
-        
-        -- Overwrite offsetPos/offsetRot to synchronize the Orbit camera position
-        if not opt.keepOrbitCamPosition then
-            if cam1ExitMode==camType.orbit and viewTargetPos then
-                orbitCamOffsetPos.x = (position - viewTargetPos):length() - (newPos - viewTargetPos):length() - camOffset.x
-                orbitCamOffsetRot = lib.kismet_math:FindLookAtRotation(newPos, viewTargetPos) - lib.kismet_math:FindLookAtRotation(position, viewTargetPos)
+            local targetPos = Vector3f.new(0,0,0)
+            if viewTargetPos then
+                targetPos = viewTargetPos
             end
+
+            -- Recalculate the rotation from the current position to the target position
+            currRot = lib.kismet_math:FindLookAtRotation(currPos, targetPos)
+            newRot = lib.wrapRotationWithPitchLimit(currRot + inputRot)
+
+            local localOffsets = lib.kismet_math:LessLess_VectorRotator(currPos - targetPos, currRot) + inputPos
+            newPos = targetPos + lib.kismet_math:GreaterGreater_VectorRotator(localOffsets, newRot)
+            local checkDistance = lib.calcDirectionDistance(newPos, viewTargetPos, newRot)
+            if checkDistance == 0 then
+                local offsetAway = Vector3f.new(-1, 0, 0)
+                newPos = viewTargetPos + lib.kismet_math:GreaterGreater_VectorRotator(offsetAway, newRot)
+            end
+
+            -- Record the offsets
+            newPosOffset =  lib.kismet_math:LessLess_VectorRotator(newPos-position, rotation)
+
+            if opt.orbitcamSyncOrientationToFreecam then
+                -- 'fix' the rotaion for freecam mode
+                -- Set freecam to the orbitcam's orientation
+                newRotOffset = newRot - viewRotOffset - rotation
+            else
+                -- Orbitcam will not affect the freecam rotation
+                newRotOffset = freeCamRotOffset + inputRot
+            end
+
+
+
+
+        -- Free/Defaul/Scene Camera
+        ------------------------------
+        else -- All variants of Free Camera: rotation center is at the position of the free camera.
+
+            -- TODO: Added stabilizer here
+
+
+            -- # Calculate the new orientation
+            currRot = rotation + freeCamRotOffset
+            newRot = lib.wrapRotation(currRot + inputRot + viewRotOffset)
+
+            -- # Fly Mode
+            if not opt.levelFlight then -- Free Fly
+                inputPosOffsetWorld = lib.kismet_math:GreaterGreater_VectorRotator(inputPos, newRot)
+            else -- Level Fly
+                -- Since the final movement is a horizontal flight in the world space, we first assume that inputPos is a vector in the world coordinate system.
+                -- Then rotate inputPos around the world's Z-axis to align it with camRot's horizontal orientation
+                local freeCamForwardLeveled = lib.xyzSetZ(lib.kismet_math:Conv_RotatorToVector(newRot), 0) -- no need to normalize
+                local freeCamRotLeveled = lib.kismet_math:Conv_VectorToRotator(freeCamForwardLeveled)
+                inputPosOffsetWorld = lib.kismet_math:GreaterGreater_VectorRotator(inputPos, freeCamRotLeveled)
+            end
+
+            -- Add input/camView offsets
+            -- currPos is the rotation center (which are not effected by the newRot)
+            newPos = currPos + inputPosOffsetWorld
+
+            -- Calculate local offsets
+            -- When not in follow mode, we want gameCamPos/Rot to keep updating.
+            -- Compensate for these changes to maintain the free camera's position/rotation.
+            if not opt.follow then -- Hold the camera position
+                newPos = freeCamPos + inputPosOffsetWorld + viewPosOffsetWorld
+            end
+            newPosOffset = lib.kismet_math:LessLess_VectorRotator(newPos - position, rotation)
+
+            if not opt.follow or opt.followPositionOnly then -- Hold the camera rotation
+                newRot = lib.wrapRotation(freeCamRot + inputRot + viewRotOffset)
+            end
+            newRotOffset = newRot - rotation
+
+        end -- if camMode
+
+        -- Record the last game camera position/rotation
+        lib.xyzSetInPlace(gameCamPos, position)
+        lib.xyzSetInPlace(gameCamRot, rotation)
+        -- Record the last freecam position/rotation
+        lib.xyzSetInPlace(freeCamPos, newPos)
+        lib.xyzSetInPlace(freeCamRot, newRot)
+        -- Record the freecam offsets
+        lib.xyzSetInPlace(freeCamPosOffset, newPosOffset)
+        lib.xyzSetInPlace(freeCamRotOffset, newRotOffset)
+
+    end -- if firstEye
+
+
+
+    -- Modify the game camera position and rotation
+    if freecamEnabled then
+        -- -- Set the new position
+        if not opt.uevrAttachCameraCompatible then
+            -- The 'positoin' method. this won't affect the mod value, but is not compatible with UEVR's attached camera feature
+            -- This is the default method.
+            -- We need to update this in both eyes, as the position is constantly reseted by UEVR.
+            lib.xyzSetInPlace(position, freeCamPos)
+        elseif firstEye then
+            -- The 'mod_value' method. this will affect the mod value, but is compatible with UEVR's attached camera feature
+            local gameCamOffest = lib.kismet_math:LessLess_VectorRotator(freeCamPos - position, freeCamRot)
+            lib.setModValueCamOffset(gameCamOffest)
         end
 
-    else
-        -- uprint("Invalid rotation mode")
-        return
+        -- Set the new rotation
+        lib.xyzSetInPlace(rotation, freeCamRot)
     end
 
-    -- lib.lzprint("newPos: " .. newPos.x .. ", " .. newPos.y .. ", " .. newPos.z)
-
-
-
-    -- Update camPos/camRot to newPos/newRot for free camera calculation.
-    lib.xyzSetInPlace(camPosLR[view_index], newPos)
-    lib.xyzSetInPlace(camRotLR[view_index], newRot)
-
-    -- Set the new position
-    lib.xyzSetInPlace(position, newPos)
-
-    -- vr.set_mod_value("VR_CameraForwardOffset", inputPos.x)
-    -- vr.set_mod_value("VR_CameraRightOffset", inputPos.y)
-    -- vr.set_mod_value("VR_CameraUpOffset", inputPos.z)
-
-    -- Set the new rotation
-    -- Be aware: Changing rotation in stereo post callback may causes stereo view offset to be incorrect ()
-    -- (It might be related to both eyes sharing the same rotation values.)
-    lib.xyzSetInPlace(rotation, newRot)
-
+    firstEye = false
 
 end
+
 local function onPostCalculateStereoViewOffset(device, view_index, world_to_meters, position, rotation, is_double)
 end
 local function onPreEngineTick(engine, delta_time)
     -- Reuest the targetPos before the pre_calc_stereo callback
-    if freeCamMode == camType.orbit then
+    if currCamMode == camType.orbit then
             events:emit('freecam_update_target_position')
     end
+    -- uprint("---------- new tick ----------")
+    firstEye = true
 end
 local function onPostEngineTick(engine, delta_time)
     -- clear the inputPos/offset after post_calc_sterio
@@ -606,59 +727,88 @@ local function onPostEngineTick(engine, delta_time)
     lib.xyzClearInPlace(inputRot)
 end
 
-local function checkCommonActions(buttonState, buttonActions)
+local function checkCommonActions(buttonActions)
 
     -- Manual reset camera
-    if gamepad.checkButtonState(buttonState, buttonActions.resetCam) then
+    if gamepad.checkButtonsState(buttonActions.resetCam) then
         if opt.recenterVROnCameraReset then
-            local hmd_pos=UEVR_Vector3f.new()
-            local hmd_rot=UEVR_Quaternionf.new()
-
-            vr.get_pose(vr.get_hmd_index(), hmd_pos, hmd_rot)
-            vr.set_standing_origin(hmd_pos)
-            vr.recenter_view()
+            lib.recenterVR()
         end
         freecam.resetCam()
     end
 
+    -- reset Camera and view
+    if gamepad.checkButtonsState(buttonActions.resetAll) then
+        if opt.recenterVROnCameraReset then
+            lib.recenterVR()
+        end
+        freecam.resetAll()
+    end
+
+    if gamepad.checkButtonsState(buttonActions.followOn) then
+        freecam.followModeToggle(true)
+    end
+    if gamepad.checkButtonsState(buttonActions.followOff) then
+        freecam.followModeToggle(false)
+    end
+    if gamepad.checkButtonsState(buttonActions.followPositionOnly) then
+        freecam.followPositionOnly()
+    end
+    if gamepad.checkButtonsState(buttonActions.levelFlight) then
+        freecam.levelFlightModeToggle()
+    end
+    if gamepad.checkButtonsState(buttonActions.omniFlightWithSpaceControl) then
+        freecam.omniFlightWithSpaceControl()
+    end
+
+    -- Game menu
+    if gamepad.checkButtonsState(buttonActions.autoGameMenuToggle) then
+        freecam.gameMenuToggle()
+    end
+
     -- Adjust speed
-    if gamepad.checkButtonState(buttonState, buttonActions.speedIncrease) then
+    if gamepad.checkButtonsState(buttonActions.speedIncrease) then
         adjustCamSpeed(1)
-    elseif gamepad.checkButtonState(buttonState, buttonActions.speedDecrease) then
+    elseif gamepad.checkButtonsState(buttonActions.speedDecrease) then
         adjustCamSpeed(-1)
     end
 
     -- Switch camera offsets
-    if gamepad.checkButtonState(buttonState, buttonActions.camOffset) then
-        freecam.switchCamOffsets(0)
+    if gamepad.checkButtonsState(buttonActions.viewCycle) then
+        freecam.switchCamViews(0)
+    end
+
+    -- Custom camera offsets
+    if gamepad.checkButtonsState(buttonActions.viewSave) then
+        freecam.saveCamView()
     end
 
 
     -- Check camera dolly button
     -- event= held : chekc buttonHold
     --        other : toogle the state
-    if gamepad.isAHoldButton(buttonActions.camDolly) then
+    if gamepad.isHeldButtons(buttonActions.camDolly) then
         -- Hold the button and move the axis at the same time
-        dollyKeyHeld =  gamepad.checkButtonHold(buttonState, buttonActions.camDolly)
+        dollyKeyHeld =  gamepad.checkButtonsHolding(buttonActions.camDolly)
     else
         -- Toggle the action state
-        if gamepad.checkButtonState(buttonState, buttonActions.camDolly) then
+        if gamepad.checkButtonsState(buttonActions.camDolly) then
             dollyKeyHeld = not dollyKeyHeld
         end
     end
 
     -- Use buttons to move
     local fakeDelta = 0.005
-    if gamepad.checkButtonHoldState(buttonState, buttonActions.moveForward) then
+    if gamepad.checkButtonsHolding(buttonActions.moveForward) then
         moveCam(0, 1, 0, fakeDelta)
     end
-    if gamepad.checkButtonHoldState(buttonState, buttonActions.moveBackward) then
+    if gamepad.checkButtonsHolding(buttonActions.moveBackward) then
         moveCam(0, -1, 0, fakeDelta)
     end
-    if gamepad.checkButtonHoldState(buttonState, buttonActions.moveLeft) then
+    if gamepad.checkButtonsHolding(buttonActions.moveLeft) then
         moveCam(-1, 0, 0, fakeDelta)
     end
-    if gamepad.checkButtonHoldState(buttonState, buttonActions.moveRight) then
+    if gamepad.checkButtonsHolding(buttonActions.moveRight) then
         moveCam(1, 0, 0, fakeDelta)
     end
 end
@@ -666,22 +816,35 @@ end
 
 local function onXinputButtonChanged(buttonState)
     -- debug
-    local btn_b_state = buttonState[gamepad.buttonDef["B"]]
-    gamepad.buttonDebug(btn_b_state)
+    gamepad.buttonDebug("B")
 
-    local buttonActions = camButtonActions[freeCamMode]
-    local freecamActive = camButtonActions[camType.free].active
+    local currButtonActions = camButtonActions[currCamMode]
+    local freeButtonActions = camButtonActions[camType.free]
 
-    -- Handle free cam activation
-    if freeCamMode ~= camType.free and gamepad.checkButtonState(buttonState, freecamActive) then
-        freecam.camModeToggle(camType.free)
-    elseif freeCamMode == camType.free then -- Use else here to prevent the released event of the same button from triggering twice
-        if gamepad.checkButtonState(buttonState, buttonActions.deactive) then
+
+    -- Mode switch for 'FreeCam'
+    if currCamMode ~= camType.free then
+    -- Not in freecam mode
+        -- Switch to freecam
+        if gamepad.checkButtonsState(freeButtonActions.active) then
+            freecam.enable(true)
+            freecam.camModeToggle(camType.free) -- activate freecam
+        end
+    else
+    -- In freecam mode
+        -- Exit from freecam
+        if gamepad.checkButtonsState(freeButtonActions.deactive) then
+            freecam.camModeToggle(cam1ExitMode)
+        end
+
+        if gamepad.checkButtonsState(freeButtonActions.disable) then
+            freecam.enable(false)
             freecam.camModeToggle(cam1ExitMode)
         end
     end
 
-    checkCommonActions(buttonState, buttonActions)
+
+    checkCommonActions(currButtonActions)
 
 end
 
@@ -758,6 +921,13 @@ local function initExtConfig()
 
 end
 
+local function resetUEVRModSettings()
+    uprint("Reset UEVR Mod Settings.")
+    lib.enableGUI(true)
+    lib.resetModValueCamOffset()
+end
+
+
 local freecamInited = false
 function freecam.init()
     if not freecamInited then
@@ -768,17 +938,13 @@ function freecam.init()
     end
     freecamInited = true
 
-    uprint("Reset UEVR camera settings.")
-    lib.setModValue("VR_CameraForwardOffset", 0)
-    lib.setModValue("VR_CameraRightOffset", 0)
-    lib.setModValue("VR_CameraUpOffset", 0)
 
     -- Initialize
+    resetUEVRModSettings()
     initExtConfig()
     -- buttonActions for each camera mode will be updated when the mode is toggled, but we need to get the config of the freecam's activation button first.  
-    updateButtonActions(camType.default, controls[camType.default].buttons)   -- For the default cam, set an empty table to prevent errors
     updateButtonActions(camType.free, controls[camType.free].buttons) 
-    -- updateButtonActionsAll()
+    freecam.camModeToggle(currCamMode)
 
     -- Register event callbacks
     uevr.sdk.callbacks.on_pre_engine_tick(onPreEngineTick)
@@ -789,9 +955,8 @@ function freecam.init()
     events:on('xinput_state_changed', onXinputStateChanged)
 end
 
--- uevr.sdk.callbacks.on_script_reset(function()
---     uprint("Resetting")
---     -- reset_hmd_actor()
--- end)
+uevr.sdk.callbacks.on_script_reset(function()
+    resetUEVRModSettings()
+end)
 
 return freecam
