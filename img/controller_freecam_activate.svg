@@ -28,7 +28,7 @@
    inkscape:deskcolor="#d1d1d1"
    showguides="true"
    inkscape:zoom="0.4847217"
-   inkscape:cx="1002.6372"
+   inkscape:cx="868.53962"
    inkscape:cy="539.48482"
    inkscape:window-width="2560"
    inkscape:window-height="1377"
@@ -1142,7 +1142,7 @@
 		</g>
 	</g>
 </g>
-<switch
+<g
    style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
    id="switch2"><text
      x="209.87878"
@@ -1193,7 +1193,7 @@
      y="848.45844"
      id="text3490-1"
      xml:space="preserve"
-     style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Sans;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;overflow:visible;fill:#000000;fill-opacity:1;stroke:none"><tspan
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:125%;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;overflow:visible;fill:#000000;fill-opacity:1;stroke:none"><tspan
        sodipodi:role="line"
        x="945.23706"
        y="848.45844"
@@ -1201,18 +1201,18 @@
          x="945.23706"
          y="848.45844"
          id="tspan3492-2"
-         style="text-align:start;text-anchor:start"> R3: (Click)Reset Camera</tspan></tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;text-anchor:start"> R3: (Click) Reset Camera</tspan></tspan><tspan
        sodipodi:role="line"
        x="945.23706"
        y="898.45844"
-       id="tspan2184">       (Hold) Reset All</tspan><tspan
+       id="tspan2184">        (Hold) Reset All</tspan><tspan
        sodipodi:role="line"
        x="945.23706"
        y="848.45844"
        id="tspan2174"><tspan
          x="945.23706"
          y="848.45844"
-         style="text-align:start;text-anchor:start"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;text-anchor:start"
          id="tspan2176">：</tspan></tspan></text><g
      id="Shape_17_copy_1_"
      style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;overflow:visible;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.7496"
@@ -1259,7 +1259,7 @@
      y="598.85022"
      id="text3490-1-4"
      xml:space="preserve"
-     style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Sans;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;overflow:visible;fill:#000000;fill-opacity:1;stroke:none"><tspan
+     style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;overflow:visible;fill:#000000;fill-opacity:1;stroke:none;-inkscape-font-specification:'Arial, Normal';font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"><tspan
        sodipodi:role="line"
        x="1644.7657"
        y="598.85022"
@@ -1267,7 +1267,7 @@
          x="1644.7657"
          y="598.85022"
          id="tspan3492-2-6"
-         style="text-align:start;text-anchor:start">Fly Mode</tspan></tspan><tspan
+         style="text-align:start;text-anchor:start;-inkscape-font-specification:'Arial, Normal';font-family:Arial;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:40px;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">Fly Mode</tspan></tspan><tspan
        sodipodi:role="line"
        x="1644.7657"
        y="648.85022"
@@ -1276,7 +1276,7 @@
      y="382.68002"
      id="text3490-1-4-3"
      xml:space="preserve"
-     style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Sans;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;overflow:visible;fill:#000000;fill-opacity:1;stroke:none"><tspan
+     style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;overflow:visible;fill:#000000;fill-opacity:1;stroke:none;-inkscape-font-specification:'Arial, Normal';font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"><tspan
        sodipodi:role="line"
        x="1633.4663"
        y="382.68002"
@@ -1284,7 +1284,7 @@
          x="1633.4663"
          y="382.68002"
          id="tspan3492-2-6-8"
-         style="text-align:start;text-anchor:start">Follow Mode</tspan></tspan><tspan
+         style="text-align:start;text-anchor:start;-inkscape-font-specification:'Arial, Normal';font-family:Arial;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:40px;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">Follow Mode</tspan></tspan><tspan
        sodipodi:role="line"
        x="1633.4663"
        y="432.68002"
@@ -1297,7 +1297,7 @@
      y="337.29315"
      id="text3490-1-4-3-2"
      xml:space="preserve"
-     style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Sans;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;overflow:visible;fill:#000000;fill-opacity:1;stroke:none"><tspan
+     style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;overflow:visible;fill:#000000;fill-opacity:1;stroke:none;-inkscape-font-specification:'Arial, Normal';font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"><tspan
        sodipodi:role="line"
        x="1050.1783"
        y="337.29315"
@@ -1310,7 +1310,7 @@
      y="335.2301"
      id="text3490-1-4-3-6"
      xml:space="preserve"
-     style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Sans;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;overflow:visible;fill:#000000;fill-opacity:1;stroke:none"><tspan
+     style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;overflow:visible;fill:#000000;fill-opacity:1;stroke:none;-inkscape-font-specification:'Arial, Normal';font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"><tspan
        sodipodi:role="line"
        x="729.73029"
        y="335.2301"
@@ -1328,7 +1328,7 @@
            height="118.813"
            x="1162.132"
            y="695.66302"
-           id="rect572" /></g></g></g></switch>
+           id="rect572" /></g></g></g></g>
 
 
 
