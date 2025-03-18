@@ -61,7 +61,16 @@
 
 
 
-
+<g
+   id="Shape_1_1_-0"
+   style="overflow:visible;stroke:#000000;stroke-width:5;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"><g
+     id="Shape_1-2"
+     style="stroke:#000000;stroke-width:5;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"><g
+       id="g42-9"
+       style="stroke:#000000;stroke-width:5;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"><path
+         d="m 1541.95,465.9 c 0,0 -45.682,-136.815 -71.429,-174.57 -34.014,-49.878 -85.436,-106.057 -104.71,-113.992 -19.274,-7.935 -81.633,-9.301 -97.506,-2.5 -15.872,6.802 -67.66,53.145 -107.343,64.48 -39.683,11.335 -272.074,5.668 -303.82,1.134 -31.746,-4.534 -47.753,-5.435 -74.964,-23.572 -27.211,-18.137 -40.781,-40.408 -49.852,-44.942 -9.069,-4.534 -75.498,-3.9 -92.505,2.9 -17.007,6.802 -73.429,60.68 -115.379,129.827 -41.95,69.148 -86.697,221.056 -90.971,256.456 -7.937,65.748 -4.134,119.361 -2.134,130.361 2,11 16.959,86.645 72.929,110.19 72.516,30.507 175.672,-32.14 249.496,-61.058 76.927,-30.134 95.033,-27.595 148.73,-27.595 106.576,0 98.615,-1.133 205.216,-1.133 108.843,0 199.412,57.313 249.299,76.583 49.887,19.27 86.436,33.106 134.055,2.5 47.619,-30.606 66.76,-89.285 73.563,-148.231 C 1571.428,583.792 1541.95,465.9 1541.95,465.9 Z"
+         id="path44-5"
+         style="fill:#ffffff;stroke:#000000;stroke-width:5;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" /></g></g></g>
 <g
    id="Shape_16_copy_2_1_">
 	<g
@@ -552,7 +561,20 @@
 		</g>
 	</g>
 </g>
-
+<g
+   id="Shape_11_1_"
+   style="fill:#ffcc00;stroke:#000000;stroke-width:0;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none">
+	<g
+   id="g246"
+   style="fill:#ffcc00;stroke:#000000;stroke-width:0;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none">
+			
+				<path
+   d="m 1404.198,394.45499 c 0,20.88796 -20.0428,37.821 -44.767,37.821 -24.7241,0 -44.767,-16.93304 -44.767,-37.821 0,-20.88796 20.0429,-37.821 44.767,-37.821 24.7242,0 44.767,16.93304 44.767,37.821 z"
+   transform="matrix(0.9811,-0.1937,0.1937,0.9811,-50.6621,270.8244)"
+   id="ellipse248"
+   style="fill:#ffcc00;stroke:#000000;stroke-width:0;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+		</g>
+</g>
 <g
    id="Shape_11_copy_1_"
    style="stroke:#000000;stroke-width:0;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none">
@@ -923,7 +945,17 @@
      id="path4839"
      style="font-size:53.72299957px;fill:#af0000;fill-opacity:1;stroke:#000000;stroke-width:0.43010852;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;font-family:Arial-BoldMT" /></g>
 </g>
-
+<g
+   id="Y"
+   style="fill:#af9600;fill-opacity:1;stroke:#000000;stroke-opacity:1">
+	<g
+   transform="matrix(1.3514,0,0,1,1336.0654,414.2188)"
+   id="text419"
+   style="font-size:53.72299957px;fill:#af9600;fill-opacity:1;stroke:#000000;stroke-opacity:1;font-family:Arial-BoldMT"><path
+     d="m 14.978434,0 0,-16.290031 -14.8210424,-22.165983 6.1907363,0 7.5810291,11.594514 c 1.399021,2.168531 2.701872,4.337036 3.908558,6.50552 1.154186,-2.011093 2.553221,-4.275781 4.197109,-6.794071 l 7.449869,-11.305963 5.928417,0 -15.345681,22.165983 0,16.290031 z"
+     id="path4918"
+     style="font-size:53.72299957px;fill:#af9600;fill-opacity:1;stroke:#000000;stroke-opacity:1;font-family:Arial-BoldMT" /></g>
+</g>
 <g
    id="RB">
 	<g
@@ -1454,14 +1486,4 @@
          height="3.4000001"
          x="411.63599"
          y="525.55603"
-         id="rect581-5" /></g></g></g><g
-   id="Y"
-   style="fill:#af9600;fill-opacity:1;stroke:#000000;stroke-opacity:1">
-	<g
-   transform="matrix(1.3514,0,0,1,1336.0654,414.2188)"
-   id="text419"
-   style="font-size:53.723px;font-family:Arial-BoldMT;fill:#af9600;fill-opacity:1;stroke:#000000;stroke-opacity:1"><path
-     d="M 14.978434,0 V -16.290031 L 0.1573916,-38.456014 H 6.3481279 L 13.929157,-26.8615 c 1.399021,2.168531 2.701872,4.337036 3.908558,6.50552 1.154186,-2.011093 2.553221,-4.275781 4.197109,-6.794071 l 7.449869,-11.305963 H 35.41311 L 20.067429,-16.290031 V 0 Z"
-     id="path4918"
-     style="font-size:53.723px;font-family:Arial-BoldMT;fill:#af9600;fill-opacity:1;stroke:#000000;stroke-opacity:1" /></g>
-</g></svg>
+         id="rect581-5" /></g></g></g></svg>
