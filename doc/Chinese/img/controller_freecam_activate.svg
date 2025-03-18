@@ -27,15 +27,15 @@
    inkscape:pagecheckerboard="0"
    inkscape:deskcolor="#d1d1d1"
    showguides="true"
-   inkscape:zoom="0.4847217"
-   inkscape:cx="823.15275"
-   inkscape:cy="539.48482"
+   inkscape:zoom="0.95971581"
+   inkscape:cx="1111.7875"
+   inkscape:cy="490.2493"
    inkscape:window-width="2560"
    inkscape:window-height="1377"
    inkscape:window-x="1912"
    inkscape:window-y="-8"
    inkscape:window-maximized="1"
-   inkscape:current-layer="switch2"
+   inkscape:current-layer="Shape_11_1_"
    inkscape:pageshadow="2"
    showgrid="false" /><metadata
    id="metadata590"><rdf:RDF><cc:Work
@@ -575,7 +575,16 @@
    id="ellipse248"
    style="fill:#ffcc00;stroke:#000000;stroke-width:0;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
 		</g>
-</g>
+<g
+   id="Y"
+   style="overflow:visible;fill:#af9600;fill-opacity:1;stroke:#000000;stroke-opacity:1"
+   transform="translate(-1.2645977,0.4999995)"><g
+     transform="matrix(1.3514,0,0,1,1336.0654,414.2188)"
+     id="text419"
+     style="font-size:53.723px;font-family:Arial-BoldMT;fill:#af9600;fill-opacity:1;stroke:#000000;stroke-opacity:1"><path
+       d="M 14.978434,0 V -16.290031 L 0.1573916,-38.456014 H 6.3481279 L 13.929157,-26.8615 c 1.399021,2.168531 2.701872,4.337036 3.908558,6.50552 1.154186,-2.011093 2.553221,-4.275781 4.197109,-6.794071 l 7.449869,-11.305963 H 35.41311 L 20.067429,-16.290031 V 0 Z"
+       id="path4918"
+       style="font-size:53.723px;font-family:Arial-BoldMT;fill:#af9600;fill-opacity:1;stroke:#000000;stroke-opacity:1" /></g></g></g>
 <g
    id="Shape_11_copy_1_"
    style="stroke:#000000;stroke-width:0;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">
@@ -1231,7 +1240,7 @@
      y="596.80334"
      id="text3490-1-4"
      xml:space="preserve"
-     style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;display:inline;overflow:visible;fill:#000000;fill-opacity:1;stroke:none;-inkscape-font-specification:'Arial, Normal';font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"><tspan
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:125%;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;display:inline;overflow:visible;fill:#000000;fill-opacity:1;stroke:none"><tspan
        sodipodi:role="line"
        x="1642.7028"
        y="596.80334"
@@ -1239,16 +1248,16 @@
          x="1642.7028"
          y="596.80334"
          id="tspan3492-2-6"
-         style="text-align:start;text-anchor:start;-inkscape-font-specification:'Arial, Normal';font-family:Arial;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:40px;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">飛行模式</tspan></tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;text-anchor:start">飛行模式</tspan></tspan><tspan
        sodipodi:role="line"
        x="1642.7028"
-       y="650.91559"
+       y="651.37866"
        id="tspan39412">切換</tspan></text><text
      x="1634.2869"
      y="383.38928"
      id="text3490-1-4-3"
      xml:space="preserve"
-     style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;display:inline;overflow:visible;fill:#000000;fill-opacity:1;stroke:none;-inkscape-font-specification:'Arial, Normal';font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"><tspan
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:125%;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;display:inline;overflow:visible;fill:#000000;fill-opacity:1;stroke:none"><tspan
        sodipodi:role="line"
        x="1633.4663"
        y="383.38928"
@@ -1256,16 +1265,16 @@
          x="1633.4663"
          y="383.38928"
          id="tspan3492-2-6-8"
-         style="text-align:start;text-anchor:start;-inkscape-font-specification:'Arial, Normal';font-family:Arial;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:40px;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">跟隨模式</tspan></tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;text-anchor:start">跟隨模式</tspan></tspan><tspan
        sodipodi:role="line"
        x="1633.4663"
-       y="437.50153"
+       y="437.96457"
        id="tspan37892">切換</tspan></text><text
      x="1078.3517"
      y="332.17603"
      id="text3490-1-4-3-2"
      xml:space="preserve"
-     style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;display:inline;overflow:visible;fill:#000000;fill-opacity:1;stroke:none;-inkscape-font-specification:'Arial, Normal';font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"><tspan
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:125%;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;display:inline;overflow:visible;fill:#000000;fill-opacity:1;stroke:none"><tspan
        sodipodi:role="line"
        x="1077.5311"
        y="332.17603"
@@ -1273,23 +1282,23 @@
          x="1077.5311"
          y="332.17603"
          id="tspan3492-2-6-8-6"
-         style="text-align:start;text-anchor:start;-inkscape-font-specification:'Arial, Normal';font-family:Arial;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:40px;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">    選單</tspan></tspan><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;text-anchor:start">    選單</tspan></tspan><tspan
        sodipodi:role="line"
        x="1077.5311"
-       y="386.28827"
+       y="386.75131"
        id="tspan43322">自動隱藏</tspan></text><text
      x="755.82434"
      y="334.23904"
      id="text3490-1-4-3-6"
      xml:space="preserve"
-     style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Arial;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;display:inline;overflow:visible;fill:#000000;fill-opacity:1;stroke:none;-inkscape-font-specification:'Arial, Normal';font-stretch:normal;font-variant:normal;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"><tspan
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:40px;line-height:125%;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;display:inline;overflow:visible;fill:#000000;fill-opacity:1;stroke:none"><tspan
        sodipodi:role="line"
        x="755.82434"
        y="334.23904"
        id="tspan2174-4-0-5">    視野</tspan><tspan
        sodipodi:role="line"
        x="755.82434"
-       y="388.35129"
+       y="388.81433"
        id="tspan42312">切換/儲存</tspan></text></g>
 
 
