@@ -43,11 +43,11 @@
 ![](img/controller_freecam.svg)
 - 水平模式：最容易操作的模式，攝影機往上下看時，不會造成高度的升降。  
 適合在高空飛行看地面的景物，或是環繞角色觀看他的細節，不用擔心高度的變化。  
-![](../../img/demo-fly-mode-level.gif)
+![水平模式動畫](../../img/demo-fly-mode-level.gif)
   
 - 全向模式：攝影機的高度會隨著前進方向而改變。  
 類似一般飛行遊戲的操作方式，或是用在攝影機正對角色推進、拉遠的情況。  
-![](../../img/demo-fly-mode-omni.gif)
+![全向模式動畫](../../img/demo-fly-mode-omni.gif)
 
 
 
