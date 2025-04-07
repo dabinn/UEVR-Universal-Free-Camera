@@ -57,6 +57,20 @@ lib.ScriptStartTime = os.clock()
 local api = uevr.api
 local vr = uevr.params.vr
 
+lib.Vector3 = Vector3f
+
+function lib.determineVectorType(vec3)
+    local checkDouble = "sol.glm::vec<3,double,0>*"
+    local mt = getmetatable(vec3)
+    local typeString = mt.__name
+    if typeString == checkDouble then
+        lib.Vector3 = Vector3d
+    else
+        lib.Vector3 = Vector3f
+    end
+end
+
+
 -- Only use this for one time allocated objects (classes, structs), not things like actors
 function lib.find_required_object(name)
     local obj = uevr.api:find_uobject(name)
@@ -104,7 +118,6 @@ local motion_controller_component_c = lib.find_required_object("Class /Script/He
 local scene_component_c = lib.find_required_object("Class /Script/Engine.SceneComponent")
 
 local temp_vec3 = Vector3d.new(0, 0, 0)
-local temp_vec3f = Vector3f.new(0, 0, 0) -- for UE5
 local temp_transform = StructObject.new(lib.ftransform_c)
 
 
@@ -222,7 +235,7 @@ end
 function lib.spawn_actor(world_context, actor_class, location, collision_method, owner)
     temp_transform.Translation = location
     temp_transform.Rotation.W = 1.0
-    temp_transform.Scale3D = Vector3f.new(1.0, 1.0, 1.0)
+    temp_transform.Scale3D = lib.Vector3.new(1.0, 1.0, 1.0)
 
     local actor = lib.Statics:BeginDeferredActorSpawnFromClass(world_context, actor_class, temp_transform, collision_method, owner)
 
@@ -428,22 +441,22 @@ function lib.xyzClearInPlace(vec)
     vec.z = 0
 end
 function lib.xyzSet(vec1)
-    return Vector3f.new(vec1.x, vec1.y, vec1.z)
+    return lib.Vector3.new(vec1.x, vec1.y, vec1.z)
 end
 function lib.xyzSetZ(vec1, z)
-    return Vector3f.new(vec1.x, vec1.y, z)
+    return lib.Vector3.new(vec1.x, vec1.y, z)
 end
 function lib.xyzAdd(vec1, vec2)
-    return Vector3f.new(vec1.x + vec2.x, vec1.y + vec2.y, vec1.z + vec2.z)
+    return lib.Vector3.new(vec1.x + vec2.x, vec1.y + vec2.y, vec1.z + vec2.z)
 end
 function lib.xyzSub(vec1, vec2)
-    return Vector3f.new(vec1.x - vec2.x, vec1.y - vec2.y, vec1.z - vec2.z)
+    return lib.Vector3.new(vec1.x - vec2.x, vec1.y - vec2.y, vec1.z - vec2.z)
 end
 function lib.xyzMul(vec1, scalar)
-    return Vector3f.new(vec1.x * scalar, vec1.y * scalar, vec1.z * scalar)
+    return lib.Vector3.new(vec1.x * scalar, vec1.y * scalar, vec1.z * scalar)
 end
 function lib.xyzDiv(vec1, scalar)
-    return Vector3f.new(vec1.x / scalar, vec1.y / scalar, vec1.z / scalar)
+    return lib.Vector3.new(vec1.x / scalar, vec1.y / scalar, vec1.z / scalar)
 end
 
 
@@ -509,7 +522,7 @@ end
 
 
 function lib.crossProduct(a, b)
-    return Vector3f.new(
+    return lib.Vector3.new(
         a.y * b.z - a.z * b.y,
         a.z * b.x - a.x * b.z,
         a.x * b.y - a.y * b.x
@@ -530,10 +543,10 @@ function lib.rotatorToVector(rotation)
     local y = math.cos(pitch) * math.sin(yaw)
     local z = math.sin(pitch)
 
-    return Vector3f.new(x, y, z)
+    return lib.Vector3.new(x, y, z)
 end
 function lib.transform_posDelta(posDelta, forward, right, up)
-    local transformed_posDelta = Vector3f.new(
+    local transformed_posDelta = lib.Vector3.new(
         posDelta.x * right.x + posDelta.y * forward.x + posDelta.z * up.x,
         posDelta.x * right.y + posDelta.y * forward.y + posDelta.z * up.y,
         posDelta.x * right.z + posDelta.y * forward.z + posDelta.z * up.z
@@ -546,9 +559,9 @@ end
 function lib.normalizeVector(vector)
     local length = math.sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z)
     if length > 0 then
-        return Vector3f.new(vector.x / length, vector.y / length, vector.z / length)
+        return lib.Vector3.new(vector.x / length, vector.y / length, vector.z / length)
     else
-        return Vector3f.new(0, 0, 0)
+        return lib.Vector3.new(0, 0, 0)
     end
 end
 
@@ -658,7 +671,7 @@ end
 
 -- Help to calculate the proportional viewPosOffset
 function lib.calcProportionalviewOffset(currPos, targetPos, lookAtRot, viewPosOffset)
-    local viewPosOffsetOut = Vector3f.new(0, 0, 0)
+    local viewPosOffsetOut = lib.Vector3.new(0, 0, 0)
     if viewPosOffset.x > 0 then -- prevent divide by zero
         -- Proportional Control
         local targetDistance = lib.calcDirectionDistance(currPos, targetPos, lookAtRot)

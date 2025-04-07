@@ -174,8 +174,8 @@ local camViewPresets = {}
 -- create default preset
 for i = 1, 2 do
     camViewPresets[i] = {}
-    camViewPresets[i].relPos = Vector3f.new(0, 0, 0)
-    camViewPresets[i].relRot = Vector3f.new(0, 0, 0)
+    camViewPresets[i].relPos = lib.Vector3.new(0, 0, 0)
+    camViewPresets[i].relRot = lib.Vector3.new(0, 0, 0)
 end
 local camViewPresetNo = 1
 
@@ -190,18 +190,18 @@ local currCamMode = camType.default
 local cam1ExitMode = camType.default -- Which Mode to switch to when exiting freecam1
 
 -- Use Vector3d if this is a UE5 game (double precision)
-local gameCamPos = Vector3f.new(0, 0, 0)
-local gameCamRot = Vector3f.new(0, 0, 0)
-local freeCamPos = Vector3f.new(0, 0, 0) -- Absolute position, including camView offset.
-local freeCamRot = Vector3f.new(0, 0, 0)
-local freeCamPosOffset = Vector3f.new(0, 0, 0) -- Offset from the game camera's local position
-local freeCamRotOffset = Vector3f.new(0, 0, 0)
-local camViewPosOffset = Vector3f.new(0, 0, 0)
-local camViewRotOffset = Vector3f.new(0, 0, 0)
-local freecamReinitialize = true
+local gameCamPos = lib.Vector3.new(0, 0, 0)
+local gameCamRot = lib.Vector3.new(0, 0, 0)
+local freeCamPos = lib.Vector3.new(0, 0, 0) -- Absolute position, including camView offset.
+local freeCamRot = lib.Vector3.new(0, 0, 0)
+local freeCamPosOffset = lib.Vector3.new(0, 0, 0) -- Offset from the game camera's local position
+local freeCamRotOffset = lib.Vector3.new(0, 0, 0)
+local camViewPosOffset = lib.Vector3.new(0, 0, 0)
+local camViewRotOffset = lib.Vector3.new(0, 0, 0)
 
-local inputPos = Vector3f.new(0, 0, 0)
-local inputRot = Vector3f.new(0, 0, 0)
+local inputPos = lib.Vector3.new(0, 0, 0)
+local inputRot = lib.Vector3.new(0, 0, 0)
+local freecamReinitialize = true
 
 
 local freecamEnabled = true
@@ -302,8 +302,9 @@ local function resetCam()
     -- Force freecam re-initialized to gameCam's Pos/Rot
     freecamReinitialize = true
     -- Re-applying the camera view offset
-    lib.xyzSetInPlace(camViewPosOffset, camViewPresets[camViewPresetNo].relPos)
-    lib.xyzSetInPlace(camViewRotOffset, camViewPresets[camViewPresetNo].relRot)
+    -- Do not use xyzSetInPlace(), as we need to make sure the offset follow current float precision setting.
+    camViewPosOffset = lib.xyzSet(camViewPresets[camViewPresetNo].relPos)
+    camViewRotOffset = lib.xyzSet(camViewPresets[camViewPresetNo].relRot)
 end
 
 function freecam.resetCam()
@@ -315,8 +316,8 @@ function freecam.resetAll()
     -- Force freecam re-initialized to gameCam's Pos/Rot
     freecamReinitialize = true
     -- Clear the current offsets
-    lib.xyzSetInPlace(camViewPosOffset, Vector3f.new(0, 0, 0))
-    lib.xyzSetInPlace(camViewRotOffset, Vector3f.new(0, 0, 0))
+    camViewPosOffset = lib.Vector3.new(0, 0, 0)
+    camViewRotOffset = lib.Vector3.new(0, 0, 0)
 
     -- Set follow mode back to default
     freecam.followModeToggle(true)
@@ -337,7 +338,7 @@ function freecam.setSceneCamViewPresets(sceneCamViewPresets, presetNo)
 end
 
 function freecam.switchCamViews(presetNo)
-    inputPos = Vector3f.new(0, 0, 0) -- reset inputPos but keep inputRot
+    inputPos = lib.Vector3.new(0, 0, 0) -- reset inputPos but keep inputRot
     if presetNo == 0 then -- switch to next preset
         camViewPresetNo = camViewPresetNo + 1
         if camViewPresetNo > #camViewPresets then
@@ -349,8 +350,8 @@ function freecam.switchCamViews(presetNo)
 
     -- Force freecam re-initialized to gameCam's Pos/Rot
     freecamReinitialize = true
-    lib.xyzSetInPlace(camViewPosOffset, camViewPresets[camViewPresetNo].relPos)
-    lib.xyzSetInPlace(camViewRotOffset, camViewPresets[camViewPresetNo].relRot)
+    camViewPosOffset = lib.xyzSet(camViewPresets[camViewPresetNo].relPos)
+    camViewRotOffset = lib.xyzSet(camViewPresets[camViewPresetNo].relRot)
 
     uprint("Switch to camera preset "..camViewPresetNo.." ,offset: " .. camViewPosOffset.x .. ", " .. camViewPosOffset.y .. ", " .. camViewPosOffset.z )
 end
@@ -360,8 +361,8 @@ function freecam.saveCamView()
 
     -- Calulate current offset
     -- relative position in gameCam's local space (Same as follow camera position's calculation)
-    local posOffset = Vector3f.new(0, 0, 0)
-    local rotOffset = Vector3f.new(0, 0, 0)
+    local posOffset = lib.Vector3.new(0, 0, 0)
+    local rotOffset = lib.Vector3.new(0, 0, 0)
 
     -- if not viewTargetPos then
     --     posOffset = lib.kismet_math:LessLess_VectorRotator(freeCamPos - gameCamPos, gameCamRot)
@@ -555,9 +556,24 @@ function freecam.camModeToggle(camMode)
 end
 
 
+local doublePrecisionInitialized = false
+local function doublePrecisionInit(is_double)
+    if doublePrecisionInitialized then
+        return
+    end
+
+    if is_double then
+        lib.Vector3 = Vector3d -- Use double precision for UE5
+    end
+    doublePrecisionInitialized = true
+end
+
 -- Event Callbacks
 ----------------------------------------
 local function onEarlyCalculateStereoViewOffset(device, view_index, world_to_meters, position, rotation, is_double)
+
+    doublePrecisionInit(is_double) -- UE4/UE5 use different precision for Vector3
+
 
     -- view_index
     -- (UE4) 0: never execute, 1: left eye, 2: right eye/screen
@@ -570,31 +586,36 @@ local function onEarlyCalculateStereoViewOffset(device, view_index, world_to_met
     -- uprint("view_index: " .. view_index)
 
     if firstEye then
-        local viewPosOffset = Vector3f.new(0, 0, 0)
-        local viewRotOffset = Vector3f.new(0, 0, 0)
+
+        local viewPosOffset = lib.Vector3.new(0, 0, 0)
+        local viewRotOffset = lib.Vector3.new(0, 0, 0)
 
         if freecamReinitialize then -- initialize
             gameCamPos = lib.xyzSet(position)
             gameCamRot = lib.xyzSet(rotation)
             freeCamPos = lib.xyzSet(position)
             freeCamRot = lib.xyzSet(rotation)
-            freeCamPosOffset = Vector3f.new(0, 0, 0)
-            freeCamRotOffset = Vector3f.new(0, 0, 0)
-            viewPosOffset = camViewPosOffset:clone()
-            viewRotOffset = camViewRotOffset:clone()
+            freeCamPosOffset = lib.Vector3.new(0, 0, 0)
+            freeCamRotOffset = lib.Vector3.new(0, 0, 0)
+            viewPosOffset = lib.xyzSet(camViewPosOffset)
+            viewRotOffset = lib.xyzSet(camViewRotOffset)
+
+            inputPos = lib.Vector3.new(0, 0, 0)
+            inputRot = lib.Vector3.new(0, 0, 0)
+
             freecamReinitialize = false
         end
 
         -- Calculate the new position and rotation
         local currPos = position + lib.kismet_math:GreaterGreater_VectorRotator(freeCamPosOffset+viewPosOffset, rotation) -- Initial pos/rot
-        local currRot = Vector3f.new(0, 0, 0)
-        local newPos = Vector3f.new(0, 0, 0)  -- Final position/rotation/offsets to record
-        local newRot = Vector3f.new(0, 0, 0)
-        local newPosOffset = Vector3f.new(0, 0, 0)
-        local newRotOffset = Vector3f.new(0, 0, 0)
+        local currRot = lib.Vector3.new(0, 0, 0)
+        local newPos = lib.Vector3.new(0, 0, 0)  -- Final position/rotation/offsets to record
+        local newRot = lib.Vector3.new(0, 0, 0)
+        local newPosOffset = lib.Vector3.new(0, 0, 0)
+        local newRotOffset = lib.Vector3.new(0, 0, 0)
         -- World offsets
         local viewPosOffsetWorld = lib.kismet_math:GreaterGreater_VectorRotator(viewPosOffset, rotation)
-        local inputPosOffsetWorld = Vector3f.new(0, 0, 0)
+        local inputPosOffsetWorld = lib.Vector3.new(0, 0, 0)
 
 
 
@@ -602,7 +623,7 @@ local function onEarlyCalculateStereoViewOffset(device, view_index, world_to_met
         ------------------------------
         if currCamMode == camType.orbit then -- Orbit Camera: Rotation center is at the position of game camera's view target
 
-            local targetPos = Vector3f.new(0,0,0)
+            local targetPos = lib.Vector3.new(0,0,0)
             if viewTargetPos then
                 targetPos = viewTargetPos
             end
@@ -615,7 +636,7 @@ local function onEarlyCalculateStereoViewOffset(device, view_index, world_to_met
             newPos = targetPos + lib.kismet_math:GreaterGreater_VectorRotator(localOffsets, newRot)
             local checkDistance = lib.calcDirectionDistance(newPos, viewTargetPos, newRot)
             if checkDistance == 0 then
-                local offsetAway = Vector3f.new(-1, 0, 0)
+                local offsetAway = lib.Vector3.new(-1, 0, 0)
                 newPos = viewTargetPos + lib.kismet_math:GreaterGreater_VectorRotator(offsetAway, newRot)
             end
 
