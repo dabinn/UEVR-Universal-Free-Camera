@@ -15,12 +15,18 @@ For example, whether you want to get close to a character to view their details,
 * **Three Flight Modes**: TPS Horizontal / TPS Omnidirectional / Space Omnidirectional. (Default: TPS Horizontal)
 * **Three Follow Modes**: Follow / Lock / Position-Only. (Default: Follow)
 * **10-Speed Control**: Adapts to various types of games.
-* **View Saving & Switching**: Save and switch views at any time.
+* **View Switching & Saving**: Switch and save views at any time.
 * **Orbit Camera**: Supports custom plugins.
+* **Time Dilation**: Pause / Slow Motion / Fast Motion.  **(New! v1.3.0)**
 * **Customizable Hotkeys**: Prevent conflicts with game controls.
-* **Two Flight Modes**: Horizontal/Omnidirectional. (Default is Horizontal Mode)
 * **Customizable Options**: Adjust plugin settings as needed.
+* **Advanced Installation**: Install once, works for all games. **(New! v1.3.0)**
 
+[Click here to jump to Download and Installation guide](#download-and-installation)
+<br>
+
+---
+The following are detailed explanations of each feature:
 # Free Camera  
 ![](img/controller_freecam_activate.svg)  
 * **L3**: (Hold) Activate Free Camera mode / (Press) Disable Free Camera mode  
@@ -29,6 +35,7 @@ For example, whether you want to get close to a character to view their details,
 * **Y Button**: Switch between 3 follow modes  
 * **Back Button**: Switch view / Save view  
 * **Start Button**: Toggle auto-hide game menu  
+* **D-Pad**: Time Dilation
   
 Tip: You can operate it correctly even while wearing a VR headset.
 Just remember: Holding L3 activates Free Camera mode, while pressing it once returns to normal mode.
@@ -105,6 +112,17 @@ Sometimes, you might need to pause the game to use the free camera, but the game
 This feature is **off by default**, meaning you need to **click Start once** while in free camera mode to activate it.  
 (This prevents confusion for users who might think the game menu is broken.)
 
+# Time Control (D-Pad)
+Allows you to pause, slow down, or speed up the game.
+- **D-Pad Up**: Pause the game
+- **D-Pad Left**: Slow motion
+- **D-Pad Right**: Fast motion
+- **D-Pad Down**: Resume normal speed
+
+Slow motion is especially fun when used with the free camera, and fast motion lets you quickly skip boring cutscenes. The pause function can freeze time, which is useful for games that don't support pausing or when you want to take screenshots.
+
+Bonus: **Auto Brake for Fast Forward**. Fast forward will automatically stop at the end of a cutscene to prevent accidental deaths when entering a new stage. Since every game's cutscene system is different, this feature only works when the cutscene is successfully detected.
+
 # Custom Key Mapping
 Open the plugin’s main script with a text editor, such as `ds-uevr-universal-freecam.lua` for the universal version of the plugin.  
 You’ll see settings like this, which contain various button action names :  
@@ -178,9 +196,20 @@ I haven’t written developer documentation yet, but you can check out the sourc
 ![](img/uevr-global-dir.png)    
 1. Find your game name and locate the `scripts` directory  
 ![](img/uevr-script-dir1.png)
-1. Copy the unzipped files into the `scripts` directory  
+1. Copy the extracted files into the `scripts` directory  
 ![](img/uevr-script-dir2.png)
 1. That’s it!
+
+# Advanced Installation
+If you want to install the plugin once and use it for all games, please follow these steps:
+![](img/universal-installation.png)
+1. Open the UEVR interface and click `Open Global Dir`
+1. Create a folder named `UEVR`, then create a `scripts` folder inside it.
+1. Copy the extracted files into the `scripts` directory
+1. That's it!
+
+* Note 1: This installation method requires the UEVR nightly version. The current stable version of UEVR does not support this feature.
+* Note 2: The plugin is designed to prevent duplicate loading. If the plugin also exists in the game directory, the one in the game directory will take priority. This ensures compatibility with custom plugins.
 
 # Known Issues / Notes
 * Manually saved camera positions may reset after switching game levels.
