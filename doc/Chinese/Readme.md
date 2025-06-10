@@ -225,5 +225,5 @@ UEVR的作者，UEVR除了本身強大的功能外，還提供了優秀的插件
 [DJ (deterministicj)](https://github.com/deterministicj)  
 幫助我解決了有些遊戲無法以穩定版UEVR運行插件的問題。  
   
-ponos0393  
+[ponos0393]()  
 測試了很多遊戲，並提供了許多有用的建議。現在這插件能在大多數遊戲中正常運作，都要謝謝他。

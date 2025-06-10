@@ -224,5 +224,5 @@ The UEVR plugin code he shared is very valuable for reference, and he has been v
 [DJ (deterministicj)](https://github.com/deterministicj)  
 Helped me solve the problem of some games not running the plugin with the stable version of UEVR.  
   
-ponos0393  
+[ponos0393]()  
 Tested many games and provided a lot of helpful feedback. Thanks to him, this plugin now works properly in most games.
