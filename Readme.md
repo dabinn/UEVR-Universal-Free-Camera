@@ -112,7 +112,7 @@ Sometimes, you might need to pause the game to use the free camera, but the game
 This feature is **off by default**, meaning you need to **click Start once** while in free camera mode to activate it.  
 (This prevents confusion for users who might think the game menu is broken.)
 
-# Time Control (D-Pad)
+# Time Dilation (D-Pad)
 Allows you to pause, slow down, or speed up the game.
 - **D-Pad Up**: Pause the game
 - **D-Pad Left**: Slow motion
@@ -222,4 +222,7 @@ Author of UEVR. Besides UEVR’s powerful features, it also provides excellent p
 The UEVR plugin code he shared is very valuable for reference, and he has been very eager to help, offering a lot of useful information on the UEVR Discord.  
   
 [DJ (deterministicj)](https://github.com/deterministicj)  
-Helped me solve the problem of some games not running the plugin with the stable version of UEVR.
+Helped me solve the problem of some games not running the plugin with the stable version of UEVR.  
+  
+ponos0393  
+Tested many games and provided a lot of helpful feedback. Thanks to him, this plugin now works properly in most games.
